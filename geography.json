@@ -1,0 +1,48 @@
+{
+  "mymaps-our-lady-of-fatima": {
+    "city": "Fátima",
+    "state": "Santarém District",
+    "country": "Portugal",
+    "continent": "Europe",
+    "keywords": [
+      "Fatima",
+      "Fátima",
+      "Cova da Iria",
+      "Our Lady of the Rosary",
+      "Portugal",
+      "1917",
+      "Lucia",
+      "Francisco",
+      "Jacinta"
+    ]
+  },
+  "mymaps-our-lady-of-guadalupe": {
+    "city": "Mexico City",
+    "state": "Mexico City",
+    "country": "Mexico",
+    "continent": "North America",
+    "keywords": [
+      "Guadalupe",
+      "Tepeyac",
+      "Juan Diego",
+      "Mexico",
+      "México",
+      "Mexico City",
+      "1531"
+    ]
+  },
+  "mymaps-our-lady-of-lourdes": {
+    "city": "Lourdes",
+    "state": "Occitanie",
+    "country": "France",
+    "continent": "Europe",
+    "keywords": [
+      "Lourdes",
+      "Bernadette Soubirous",
+      "Massabielle",
+      "France",
+      "1858",
+      "Immaculate Conception"
+    ]
+  }
+}

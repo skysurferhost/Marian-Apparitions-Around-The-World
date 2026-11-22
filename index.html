@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Explore Marian apparitions around the world with satellite mapping and an interactive PDF viewer.">
+  <title>Explore Marian Apparitions around the World | Sky Surfer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Restore the user's preferred appearance before the page becomes visible.
+    try {
+      const savedTheme = localStorage.getItem('sky-surfer-marian-theme');
+      if (savedTheme === 'day' || savedTheme === 'night') document.documentElement.dataset.theme = savedTheme;
+    } catch (_) { /* Private/local browsing may disallow storage. */ }
+  </script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="https://www.sky-surfer.com/" target="_blank" rel="noopener" aria-label="Sky Surfer website">
+        <span class="brand-icon" aria-hidden="true">✦</span>
+        <span class="brand-titles"><b>SKY SURFER</b><small>MARIAN APPARITIONS</small></span>
+      </a>
+      <div class="topbar-center">MARIAN APPARITIONS <span class="topbar-dot">✧</span> STORIES OF FAITH</div>
+      <div class="topbar-actions">
+        <button type="button" id="openDirectory" class="directory-open-btn" aria-label="Browse Apparitions" aria-haspopup="dialog" aria-controls="apparitionsDirectory" aria-expanded="false" title="Browse apparitions by country">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          <span class="directory-btn-text">Browse Apparitions</span>
+        </button>
+        <button type="button" id="themeToggle" class="theme-toggle" aria-label="Switch to day mode" aria-pressed="false" title="Switch to day mode">
+          <svg class="theme-icon theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>
+          </svg>
+          <svg class="theme-icon theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"></path>
+          </svg>
+        </button>
+        <button type="button" id="siteFullscreen" class="theme-toggle site-fullscreen-toggle" aria-label="Enter fullscreen map" aria-pressed="false" title="Enter fullscreen map">
+          <svg class="site-fullscreen-expand" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
+          <svg class="site-fullscreen-contract" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <aside class="sidebar" aria-label="Location search and list">
+        <div class="sidebar-heading">
+          <div class="eyebrow"><span class="eyebrow-line"></span> DISCOVER THE APPARITIONS</div>
+          <h1>Explore<br> <em>Marian Apparitions<br>around the World!</em></h1>
+          <p>Explore Marian apparitions across continents. Search by apparition, year, city, country, or document, then view the accompanying PDFs.</p>
+        </div>
+        <label class="search-box">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Search apparitions, countries or PDFs..." autocomplete="off" spellcheck="false" aria-label="Search Marian apparitions">
+          <kbd id="searchHint">⌘ K</kbd>
+        </label>
+        <div class="sidebar-tabs" aria-label="Location filters">
+          <button type="button" id="showAll" class="tab active" aria-pressed="true">All apparitions <span id="allCount">3</span></button>
+          <button type="button" id="showDocs" class="tab" aria-pressed="false">With media <span id="docCount">3</span></button>
+        </div>
+        <div class="list-heading"><span>APPARITIONS</span><span id="visibleCount">03 APPARITIONS</span></div>
+        <div class="place-list" id="placeList" role="list" aria-live="polite"></div>
+        <div class="sidebar-bottom">
+          <span class="status-pulse"></span> Linked to your Google My Maps KML
+        </div>
+      </aside>
+
+      <section class="globe-section satellite-active" id="mapSection" aria-label="Marian apparitions satellite map, live Google My Maps and globe">
+        <div id="googleLiveMap" class="google-live-map" role="region" hidden aria-label="Live satellite map from Google My Maps">
+          <iframe id="googleMapFrame" src="https://www.google.com/maps/d/embed?mid=15WqbuRlgPoyjzpR8lw7uUsQUrV_0EW0" title="Marian Apparitions Google My Maps — live view" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe>
+          <div class="google-live-footer"><span class="status-pulse"></span><span>LIVE GOOGLE MY MAPS · Google markers open Google popups</span><button type="button" id="refreshGoogle" title="Reload the live map">↻ Refresh map</button></div>
+        </div>
+        <div id="satelliteMap" class="satellite-map" role="region" aria-label="MapLibre satellite Explorer with clickable apparition markers">
+          <div id="mapLibreCanvas" class="maplibre-canvas" aria-label="Interactive geographic map"></div>
+          <div id="mapNotice" class="map-notice" hidden role="status"></div>
+          <div id="mapDiagnostic" class="map-diagnostic" hidden>
+            <div id="mapDiagnosticDetails" class="map-diagnostic-details"></div>
+            <div class="map-diagnostic-actions">
+              <button type="button" id="mapUseGoogle">Use Live Google Satellite</button>
+              <button type="button" id="mapCopyDiagnostic">Copy diagnostics</button>
+            </div>
+          </div>
+          <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
+        </div>
+        <canvas id="stars" aria-hidden="true"></canvas>
+        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> TEST v1.33</div>
+        <div class="view-switch" aria-label="Map view mode">
+          <button class="view-tab" id="googleViewBtn" type="button" aria-pressed="false">Live Google Map</button>
+          <div class="view-switch-middle">
+          <button class="view-tab active" id="satelliteViewBtn" type="button" aria-pressed="true" aria-controls="explorerStyleSwitch" aria-expanded="true">Marian Apparitions Map</button>
+          <div class="explorer-style-switch" id="explorerStyleSwitch" hidden aria-label="Explorer basemap selection">
+            <button type="button" id="satelliteBasemapBtn" class="basemap-tab active" aria-pressed="true">Satellite</button>
+            <button type="button" id="streetsBasemapBtn" class="basemap-tab" aria-pressed="false" title="View OpenFreeMap streets; 3D buildings automatically appear as you zoom closer">Street Map</button>
+          </div>
+          </div>
+          <button class="view-tab" id="globeViewBtn" type="button" aria-pressed="false">3D globe</button>
+        </div>
+        <div class="google-mode-guide" id="googleGuide" hidden><b>Your live Marian Apparitions Google My Maps project.</b> Its markers open Google's own popups. To open the Sky Surfer image/PDF viewer directly, use <strong>Marian Apparitions Map</strong> and click a marker, or choose a location on the left. The location list at left always opens documents.</div>
+        <div class="globe-area" id="globeArea">
+          <div class="outer-glow"></div>
+          <canvas id="globe" aria-label="Drag to rotate the Earth and scroll to zoom" tabindex="0"></canvas>
+          <!-- Experimental MapLibre satellite globe with atmosphere. The existing local globe
+               remains visible until this layer successfully loads, and is a fallback offline. -->
+          <div id="mapLibreGlobeCanvas" class="maplibre-globe-canvas" hidden aria-label="Interactive satellite globe with atmosphere"></div>
+          <div id="mapLibreGlobeCredit" class="maplibre-globe-credit" hidden>
+            <a href="https://cloudless.eox.at/" target="_blank" rel="noopener noreferrer">EOxCloudless</a> 2016 imagery · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+          </div>
+          <div class="globe-markers" id="globeMarkers"></div>
+        </div>
+        <div class="globe-help" id="globeHelp"><span class="hand-icon">↔</span> DRAG TO PAN <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER</div>
+        <div class="globe-controls" aria-label="Map and globe controls">
+          <button type="button" id="globeZoomIn" aria-label="Zoom globe in" title="Zoom in">+</button>
+          <button type="button" id="globeZoomOut" aria-label="Zoom globe out" title="Zoom out">−</button>
+          <button type="button" id="resetGlobe" aria-label="Reset globe view" title="Reset globe view">↺</button>
+        </div>
+        <div class="bottom-coordinate" id="coordinates">40.00° N &nbsp; 95.00° W</div>
+      </section>
+
+      <aside class="info-panel" id="infoPanel" hidden aria-label="Apparition details">
+        <div class="info-header">
+          <span class="eyebrow"><span class="eyebrow-line"></span> APPARITION DETAILS</span>
+          <button id="closePanel" type="button" class="close-panel" aria-label="Close details">×</button>
+        </div>
+        <h2 id="placeTitle">Selected place</h2>
+        <div class="location-coords" id="placeLocation"></div>
+        <div class="location-coords location-coordinate-line" id="placeCoords"></div>
+        <div class="thin-divider"></div>
+        <div class="media-section-label"><span>IMAGE & PDF VIEWER</span><span id="mediaCounter">—</span></div>
+
+        <div id="emptyMedia" class="empty-media" hidden>
+          <div class="empty-icon">▧</div>
+          <h3>No document attached yet</h3>
+          <p>Add a corresponding PDF or photograph to the media folder and connect it in bindings.json.</p>
+        </div>
+
+        <div class="viewer-box" id="viewerBox" hidden>
+          <div class="viewer-toolbar">
+            <button id="mediaPrev" type="button" title="Previous image/page" aria-label="Previous image or page">‹</button>
+            <span id="pageLabel">01 / 01</span>
+            <button id="mediaNext" type="button" title="Next image/page" aria-label="Next image or page">›</button>
+            <span class="viewer-spacer"></span>
+            <button id="mediaZoomOut" type="button" title="Zoom out" aria-label="Zoom document out">−</button>
+            <span id="zoomLabel">100%</span>
+            <button id="mediaZoomIn" type="button" title="Zoom in" aria-label="Zoom document in">+</button>
+            <button id="mediaReset" type="button" title="Fit image" aria-label="Fit image to viewer">⤢</button>
+            <button id="mediaFullscreen" class="viewer-fullscreen-btn" type="button" title="Open fullscreen viewer" aria-label="Open fullscreen viewer" aria-pressed="false" aria-haspopup="dialog" aria-controls="mediaOverlay"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg><span id="mediaFullscreenLabel">FULLSCREEN</span></button>
+          </div>
+          <div class="media-stage" id="mediaStage" aria-label="Document viewer. Scroll to zoom under the pointer; drag in any direction to pan. On touchscreens drag with one finger and pinch with two fingers to zoom.">
+            <div class="stage-loading" id="stageLoading">Loading document preview…</div>
+            <div id="mediaStrip" class="media-strip" aria-label="Movable continuous PDF pages" hidden></div>
+            <img id="mediaImage" alt="Document page preview" draggable="false" hidden>
+            <iframe id="mediaFallback" title="PDF document" loading="lazy" hidden></iframe>
+          </div>
+          <div class="viewer-footer">
+            <span>DRAG ANY DIRECTION TO PAN <span class="help-sep">•</span> WHEEL TO ZOOM <span class="help-sep">•</span> SHIFT+WHEEL SIDEWAYS <span class="help-sep">•</span> PHONE: DRAG / PINCH</span>
+            <a id="openOriginal" href="#" download aria-label="Download the selected document">DOWNLOAD PDF</a>
+          </div>
+        </div>
+
+        <div class="description-section">
+          <div class="media-section-label">ABOUT THIS APPARITION</div>
+          <p id="placeDescription"></p>
+          <div class="location-external-links">
+            <a id="openEarth" class="earth-link" href="#" target="_blank" rel="noopener noreferrer">View coordinates in Google Maps <span>↗</span></a>
+            <a id="openStreet" class="earth-link" href="#" target="_blank" rel="noopener noreferrer">Try Google Street View <span>↗</span></a>
+          </div>
+        </div>
+      </aside>
+    </main>
+    <!-- The document viewer is moved into this overlay (not recreated) so that it
+         works inside app-shell fullscreen without starting a competing browser fullscreen. -->
+    <div id="mediaOverlay" class="media-overlay" role="dialog" aria-modal="true" aria-label="Expanded document viewer" hidden>
+      <div id="mediaOverlayBackdrop" class="media-overlay-backdrop" aria-hidden="true"></div>
+      <div id="mediaOverlayDialog" class="media-overlay-dialog" role="document"></div>
+    </div>
+    <div class="directory-overlay" id="apparitionsDirectory" role="dialog" aria-modal="true" aria-labelledby="directoryTitle" hidden>
+      <div class="directory-backdrop" id="directoryBackdrop" aria-hidden="true"></div>
+      <section class="directory-dialog" aria-label="Browse Marian apparitions by country">
+        <div class="directory-heading">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> EXPLORE BY COUNTRY</div>
+            <h2 id="directoryTitle">Marian Apparitions Directory</h2>
+            <p>Select an apparition to find its location and view the accompanying document.</p>
+          </div>
+          <button class="directory-close" type="button" id="closeDirectory" aria-label="Close apparition directory" title="Close directory">×</button>
+        </div>
+        <label class="directory-search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+          <input id="directorySearch" type="search" autocomplete="off" spellcheck="false" placeholder="Search apparition, country, city, year or PDF…" aria-label="Search apparition directory">
+        </label>
+        <div id="directoryResults" class="directory-results" role="list" aria-live="polite"></div>
+        <div class="directory-bottom"><span id="directoryCount"></span> <span>Countries listed A–Z</span></div>
+      </section>
+    </div>
+  </div>
+  <script src="country-codes.js"></script>
+  <script src="site-data.js"></script>
+  <script src="globe-texture.js"></script>
+  <script src="download-manifest.js"></script>
+  <script src="app.js"></script>
+  <script src="pdf-download.js"></script>
+  
+  <script src="maplibre-explorer.js"></script>
+</body>
+</html>

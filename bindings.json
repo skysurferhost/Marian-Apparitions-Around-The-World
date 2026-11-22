@@ -1,0 +1,56 @@
+{
+  "mymaps-our-lady-of-fatima": {
+    "files": [
+      "Our Lady of Fátima (Fátima, Portugal - 1917).pdf"
+    ],
+    "year": 1917,
+    "description_override": "Between May and October 1917, three shepherd children—Lúcia dos Santos and her cousins Francisco and Jacinta Marto—reported apparitions of the Virgin Mary in Fátima, Portugal. Their accounts emphasized prayer, especially the Rosary, and conversion. The Shrine of Fátima includes the Chapel of the Apparitions near the reported site at Cova da Iria.",
+    "source_references": [
+      {
+        "name": "Shrine of Fátima — Narrative of the Apparitions",
+        "url": "https://www.santuario-fatima.pt/en/pages/narrative-of-the-apparitions-"
+      },
+      {
+        "name": "Shrine of Fátima — Places of the Apparitions",
+        "url": "https://www.santuario-fatima.pt/en/pages/places-of-the-apparitions"
+      }
+    ],
+    "list_order": 1
+  },
+  "mymaps-our-lady-of-lourdes": {
+    "files": [
+      "Our Lady of Lourdes (Lourdes, France - 1858).pdf"
+    ],
+    "year": 1858,
+    "description_override": "In 1858, fourteen-year-old Bernadette Soubirous reported eighteen apparitions of a Lady at the Grotto of Massabielle in Lourdes, France. In her account, the Lady identified herself as the Immaculate Conception and directed her toward a spring. Following an investigation, the local bishop officially recognized the apparitions in 1862.",
+    "source_references": [
+      {
+        "name": "Sanctuary of Lourdes — The Apparitions",
+        "url": "https://www.lourdes-france.com/en/the-apparitions/"
+      },
+      {
+        "name": "Sanctuary of Lourdes — Recognition of the Apparitions",
+        "url": "https://www.lourdes-france.com/en/recognition-of-the-apparitions/"
+      }
+    ],
+    "list_order": 3
+  },
+  "mymaps-our-lady-of-guadalupe": {
+    "files": [
+      "Our Lady of Guadalupe (Mexico City, Mexico - 1531).pdf"
+    ],
+    "year": 1531,
+    "description_override": "According to Catholic tradition, the Virgin Mary appeared to Saint Juan Diego in December 1531 at Tepeyac, near present-day Mexico City. She asked that a sacred place be built, and the account recounts a Marian image appearing on Juan Diego’s tilma. The image is venerated today at the Basilica of Our Lady of Guadalupe.",
+    "source_references": [
+      {
+        "name": "Basilica of Guadalupe — Summary of the Apparitions",
+        "url": "https://virgendeguadalupe.org.mx/sintesis-de-las-apariciones/"
+      },
+      {
+        "name": "Vatican — Saint Juan Diego biography",
+        "url": "https://www.vatican.va/news_services/liturgy/saints/ns_lit_doc_20020731_juan-diego_en.html"
+      }
+    ],
+    "list_order": 2
+  }
+}
