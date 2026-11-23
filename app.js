@@ -84,7 +84,6 @@
     }
     renderMarkers();
     window.SKY_SURFER_MAP?.refresh?.();
-    window.SKY_SURFER_CINEMATIC?.refresh?.();
   }
   // Country directory uses the same apparition records as Explorer, so edits to
   // site-data.js (via the KML import) automatically populate and alphabetize it.
@@ -730,11 +729,7 @@
     if(sceneDirty && (!softwareContext || !state.fly || time-softwareLastFrame>65)){softwareLastFrame=time;drawGlobe();$('coordinates').textContent=`${fmt(state.pitch/rad,'N','S')}   ${fmt(state.yaw/rad,'E','W')}`;sceneDirty=false;}
     requestAnimationFrame(tick);
   }
-  window.SKY_SURFER_APP={locations, selectLocation, getSelected:()=>state.selected, getFiltered:filtered,
-    localGlobeZoomIn:()=>{state.zoom=clamp(state.zoom*1.2,.62,1.8);resize();},
-    localGlobeZoomOut:()=>{state.zoom=clamp(state.zoom/1.2,.62,1.8);resize();},
-    localGlobeReset:()=>{state.fly=null;state.yaw=-98*rad;state.pitch=39*rad;state.zoom=1;resize();}
-  };
+  window.SKY_SURFER_APP={locations, selectLocation, getSelected:()=>state.selected, getFiltered:filtered};
   makeWebGL();
   window.addEventListener('resize',resize);
   if('ResizeObserver' in window)new ResizeObserver(()=>resize()).observe($('globeArea'));

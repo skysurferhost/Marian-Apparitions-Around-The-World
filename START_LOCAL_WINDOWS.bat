@@ -13,11 +13,11 @@ pause
 exit /b 1
 :use_py
 start "" "http://localhost:%PORT%/index.html"
-echo Sky Surfer v1.38 local server: http://localhost:%PORT%/
+echo Sky Surfer v1.26 local server: http://localhost:%PORT%/
 py -3 -m http.server %PORT% --bind 127.0.0.1
 exit /b %errorlevel%
 :use_python
 start "" "http://localhost:%PORT%/index.html"
-echo Sky Surfer v1.38 local server: http://localhost:%PORT%/
+echo Sky Surfer v1.26 local server: http://localhost:%PORT%/
 python -m http.server %PORT% --bind 127.0.0.1
 exit /b %errorlevel%

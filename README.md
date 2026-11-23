@@ -1,29 +1,4 @@
-# Version 1.38 — Native God's Eye View integration (experimental)
-
-**Not a simulation.** The fourth tab embeds Bilawal Sidhu's original MIT-licensed God's Eye View program (repository: https://github.com/bilawalsidhu/gods-eye-view). The upstream source and dependencies are **not bundled** in this ZIP; the local installer downloads them directly from GitHub before the fourth tab can work. The three original maps and the original PDF viewer remain available independently.
-
-## Windows launch
-
-1. Install Node.js **24.22.1 or later** (24.x) and Python 3. Git is optional; the launcher can download the upstream source ZIP if Git is not installed. Node 22.x is not supported by the current upstream project.
-2. Extract this ZIP and double-click `START_NATIVE_GODS_EYE_VIEW_WINDOWS.bat`. The launcher downloads the original application into `_gods-eye-view-native`, runs `npm ci`, applies the small Sky Surfer bridge and opens the original GEV server on **127.0.0.1:4173**, along with the Sky Surfer site on **127.0.0.1:8765**. Internet access is needed for installation and map imagery.
-3. In Sky Surfer select **God's Eye View · Native**, then click **CONNECT TO NATIVE VIEW** if it has not already connected. Pick a Marian apparition on the left or click **FLY TO SHRINE**. The custom pins live in the real Cesium scene.
-4. To use Google Photorealistic 3D (as in God's Eye View promotional video), configure a legitimate Cesium ion token or Google Maps Platform key through **the original God's Eye View provider settings**. Unauthenticated mode is satellite imagery/terrain, not Google 3D tiles.
-
-If the upstream project changes its startup or renderer APIs, the bridge may require an update. This integration has **not been live-tested against a downloaded God’s Eye View build** in the present environment because network access to its source downloads is blocked. The local HTML/JS structure, bridge syntax, and patching routine were checked. The user-supplied video (https://www.youtube.com/watch?v=-0ekNQbijgo) was not directly playable by the available tools. It is intentionally not disguised with a substitute globe while native GEV is unavailable.
-
-## Publishing
-
-This integration is **not a complete GitHub Pages deployment**. The full original app includes server-backed functions. For visitors beyond your own computer, host a compatible GEV application and its backend at the same website origin (`/gods-eye-view/`), observing upstream hosting/security instructions and provider licenses. Avoid exposing any private server credentials. The normal Sky Surfer views remain static-site compatible.
-
-## Attribution
-
-God's Eye View © 2026 Bilawal Sidhu / contributors (MIT source license; original repo `LICENSE` and `DATA_SOURCES.md`). Source code used after the user's installation is downloaded from the upstream repository, and original third-party imagery attribution must stay visible. God's Eye View name and branding may be trademarked; this is an independent Sky Surfer integration, not an official partnership.
-
----
-
-## Historical version notes
-
-The sections below describe preserved features from older releases, not the new native God’s Eye View tab.
+# Sky Surfer Marian Apparitions Map — v1.34
 
 ## Changes from v1.30
 

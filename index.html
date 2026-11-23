@@ -84,7 +84,7 @@
           <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
         </div>
         <canvas id="stars" aria-hidden="true"></canvas>
-        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> TEST v1.38</div>
+        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> TEST v1.33</div>
         <div class="view-switch" aria-label="Map view mode">
           <button class="view-tab" id="googleViewBtn" type="button" aria-pressed="false">Live Google Map</button>
           <div class="view-switch-middle">
@@ -95,7 +95,6 @@
           </div>
           </div>
           <button class="view-tab" id="globeViewBtn" type="button" aria-pressed="false">3D globe</button>
-          <button class="view-tab cinematic-view-tab" id="cinematicViewBtn" type="button" aria-pressed="false" title="Open the original Gods Eye View engine with Marian markers">God’s Eye View <small>NATIVE</small></button>
         </div>
         <div class="google-mode-guide" id="googleGuide" hidden><b>Your live Marian Apparitions Google My Maps project.</b> Its markers open Google's own popups. To open the Sky Surfer image/PDF viewer directly, use <strong>Marian Apparitions Map</strong> and click a marker, or choose a location on the left. The location list at left always opens documents.</div>
         <div class="globe-area" id="globeArea">
@@ -109,30 +108,6 @@
           </div>
           <div class="globe-markers" id="globeMarkers"></div>
         </div>
-        <!-- v1.38 — Native God's Eye View integration. No simulated globe. -->
-        <section id="cinematicStage" class="cinematic-stage gev-native-stage" hidden role="region" aria-label="God's Eye View native Marian map">
-          <iframe id="gevNativeFrame" class="gev-native-frame" title="God's Eye View — native application" allow="fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-          <div class="gev-native-toolbar">
-            <span class="gev-native-tag">GOD'S EYE VIEW <small>ORIGINAL ENGINE · TEST</small></span>
-            <div class="gev-native-actions">
-              <button id="gevFlySelected" type="button" title="Cinematic flight to the selected Marian apparition">FLY TO SHRINE</button>
-              <button id="gevReload" type="button" title="Reconnect to the native God's Eye View">RECONNECT</button>
-            </div>
-          </div>
-          <div id="gevSetup" class="gev-setup" role="status">
-            <div class="gev-setup-inner">
-              <span class="gev-setup-eyebrow">NATIVE GOD'S EYE VIEW INTEGRATION</span>
-              <h2 id="gevSetupTitle">Connect the original 3D viewer</h2>
-              <p id="gevSetupMessage">This tab runs the actual open-source God's Eye View application, not the previous simulated globe. For local testing, run <strong>START_NATIVE_GODS_EYE_VIEW_WINDOWS.bat</strong> from this project folder, then choose RECONNECT.</p>
-              <div class="gev-setup-controls">
-                <button type="button" id="gevConnect">CONNECT TO NATIVE VIEW</button>
-                <a href="https://github.com/bilawalsidhu/gods-eye-view" rel="noopener noreferrer" target="_blank">View original GitHub project</a>
-              </div>
-              <p class="gev-setup-small">God's Eye View's keyless satellite mode works without paid imagery. Its promotional Google Photorealistic 3D scenery requires authorized Google Maps or Cesium ion access in the original app. No imagery or token restrictions are bypassed.</p>
-            </div>
-          </div>
-          <div id="gevConnectionNotice" class="gev-native-connection" aria-live="polite">ORIGINAL GEV · CONNECTION NOT READY</div>
-        </section>
         <div class="globe-help" id="globeHelp"><span class="hand-icon">↔</span> DRAG TO PAN <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER</div>
         <div class="globe-controls" aria-label="Map and globe controls">
           <button type="button" id="globeZoomIn" aria-label="Zoom globe in" title="Zoom in">+</button>
@@ -227,6 +202,5 @@
   <script src="pdf-download.js"></script>
   
   <script src="maplibre-explorer.js"></script>
-  <script src="native-gev-integration.js"></script>
 </body>
 </html>
