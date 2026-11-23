@@ -582,7 +582,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> TEST v1.32`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.39`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
@@ -642,7 +642,7 @@
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.resize();
   });
   window.SKY_SURFER_MAP={
-    refresh:updateMarkers,select,setMode,
+    refresh:()=>{updateMarkers();},select:place=>{select(place);},setMode,
     getView:()=>({mode:viewMode,basemapMode,zoom:map?.getZoom(),center:map?.getCenter(),ready:mapReady}),
     getTileStats:()=>({library:'MapLibre GL JS',style:tileModeLabels[basemapMode],ready:mapReady,failed:mapFailed,errorType:lastErrorType,error:lastError,report:browserReport()})
   };

@@ -588,3 +588,96 @@ body.media-overlay-open{overscroll-behavior:none;}
   .media-overlay-dialog .viewer-footer{padding:5px 8px;}
   .media-overlay-dialog .viewer-footer #openOriginal{min-height:29px;padding:6px 13px;}
 }
+
+/* v1.39 — Phone-only: Google My Maps-style LEFT details drawer.
+   The class is set only for coarse-pointer phone dimensions so desktop styling
+   and the current desktop right-side panel remain completely unchanged.
+   Because the panel is reparented inside #mapSection, it also works inside a
+   mobile Squarespace embed: the panel cannot get lost below the map. */
+body.phone-drawer-page {overflow:auto;}
+.app-shell.phone-drawer-enabled {height:auto;min-height:100dvh;overflow:visible;}
+.phone-drawer-enabled .app-layout {display:flex;flex-direction:column;min-height:0;overflow:visible;}
+.phone-drawer-enabled .sidebar {width:100%;flex:none;border-right:0;border-bottom:1px solid var(--line);}
+.phone-drawer-enabled .sidebar-heading {padding:10px 13px 7px;}
+.phone-drawer-enabled .sidebar-heading h1 {font-size:clamp(25px,5vw,30px);line-height:1.08;margin:7px 0 6px;letter-spacing:-.4px;}
+.phone-drawer-enabled .sidebar-heading h1 br {display:none;}
+.phone-drawer-enabled .sidebar-heading p {max-width:none;font-size:10px;line-height:1.45;margin:0;}
+.phone-drawer-enabled .sidebar .eyebrow {font-size:8px;letter-spacing:1.3px;}
+.phone-drawer-enabled .search-box {height:40px;margin:4px 10px 8px;}
+.phone-drawer-enabled .sidebar-tabs {padding:0 10px 7px;}
+.phone-drawer-enabled .list-heading {padding:7px 12px;}
+.phone-drawer-enabled .place-list {display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:0 8px 7px;min-height:0;}
+.phone-drawer-enabled .place-item {width:188px;flex:0 0 188px;padding:8px;margin:0;}
+.phone-drawer-enabled .sidebar-bottom {display:none;}
+.phone-drawer-enabled .globe-section {width:100%;height:clamp(370px,60dvh,500px);min-height:0;flex:0 0 auto;position:relative;overflow:hidden;}
+.phone-drawer-enabled .info-panel,
+.phone-drawer-enabled .info-panel[hidden] {position:absolute;top:0;left:0;bottom:0;right:auto;width:min(76%,360px);height:100%;max-height:100%;padding:13px 12px 18px;z-index:55;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;border:0;border-right:1px solid rgba(224,184,119,.48);box-shadow:8px 0 30px rgba(0,0,0,.5);transform:translateX(-106%);visibility:hidden;pointer-events:none;transition:transform .28s ease,visibility 0s linear .28s;}
+.phone-drawer-enabled .info-panel.is-open {transform:translateX(0);visibility:visible;pointer-events:auto;transition:transform .28s ease;}
+.phone-drawer-enabled .info-panel[hidden] {display:none!important;}
+.phone-drawer-enabled .info-header {position:sticky;top:-13px;z-index:2;background:var(--pane);padding:8px 2px;min-height:49px;}
+.phone-drawer-enabled .info-panel h2 {font-size:clamp(19px,5vw,25px);margin:7px 0 9px;}
+.phone-drawer-enabled .info-panel .close-panel {width:40px;height:40px;min-width:40px;min-height:40px;line-height:1;font-size:26px;}
+.phone-drawer-enabled .info-panel .thin-divider {margin:13px 0;}
+.phone-drawer-enabled .info-panel .location-coords {font-size:9px;letter-spacing:.45px;}
+.phone-drawer-enabled .info-panel .media-section-label {font-size:9px;letter-spacing:.8px;}
+/* Never let the PDF viewer collapse out of view in short landscape viewports.
+   The drawer itself scrolls, so its children must retain their full height. */
+.phone-drawer-enabled .info-panel .viewer-box{flex:0 0 auto;min-height:0;}
+.phone-drawer-enabled .info-panel .viewer-box .media-stage{flex:0 0 auto;min-height:120px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar {height:auto;min-height:50px;flex-wrap:wrap;gap:2px;padding:6px 3px;justify-content:space-between;}
+.phone-drawer-enabled .info-panel .viewer-toolbar button {height:31px;min-width:25px;width:25px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #zoomLabel {width:30px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #pageLabel {width:41px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn {width:100%;flex:1 1 100%;margin:4px 0 0;min-height:35px;}
+.phone-drawer-enabled .info-panel .media-stage {height:clamp(140px,25dvh,250px);}
+.phone-drawer-enabled .info-panel .viewer-footer {flex-wrap:wrap;gap:4px;padding:8px 5px;}
+.phone-drawer-enabled .info-panel .viewer-footer > span {display:none;}
+.phone-drawer-enabled .info-panel .viewer-footer > a {font-size:10px;min-height:30px;display:inline-flex;align-items:center;}
+.phone-drawer-enabled .info-panel .description-section {margin-top:14px;}
+.phone-drawer-enabled .info-panel .description-section p {font-size:11px;line-height:1.65;}
+.phone-drawer-enabled .info-panel .earth-link {font-size:10px;}
+.phone-drawer-enabled .sat-pin,.phone-drawer-enabled .map-marker {min-width:46px;min-height:46px;}
+/* In phone fullscreen, replace the tall introductory content with a map-first
+   layout. The app and its drawer remain inside the same fullscreen element. */
+.app-shell.phone-drawer-enabled:fullscreen,
+.app-shell.phone-drawer-enabled:-webkit-full-screen {height:100dvh;min-height:0;overflow:hidden;}
+.app-shell.phone-drawer-enabled:fullscreen .app-layout,
+.app-shell.phone-drawer-enabled:-webkit-full-screen .app-layout {flex:1;min-height:0;overflow:hidden;}
+.app-shell.phone-drawer-enabled:fullscreen .sidebar,
+.app-shell.phone-drawer-enabled:-webkit-full-screen .sidebar {display:none!important;}
+.app-shell.phone-drawer-enabled:fullscreen .globe-section,
+.app-shell.phone-drawer-enabled:-webkit-full-screen .globe-section {flex:1 1 auto;height:auto;min-height:0;}
+@media (orientation:landscape) {
+  .phone-drawer-enabled .globe-section {height:clamp(290px,75dvh,480px);}
+  .phone-drawer-enabled .info-panel,.phone-drawer-enabled .info-panel[hidden]{width:min(49%,420px);}
+  .phone-drawer-enabled .info-header {min-height:40px;}
+  .phone-drawer-enabled .info-panel .media-stage {height:clamp(100px,23dvh,180px);}
+  .phone-drawer-enabled .info-panel h2 {font-size:20px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .phone-drawer-enabled .info-panel {transition:none!important;}
+}
+
+/* v1.39 — phone-only polishing; never affects desktop or laptop layouts. */
+@media (max-width: 1100px) and (pointer: coarse) and (max-height: 600px) {
+  .phone-drawer-enabled .globe-section .view-switch{top:6px;left:auto;right:6px;width:min(400px,calc(100% - 12px));max-width:calc(100% - 12px);flex-wrap:nowrap;justify-content:flex-end;gap:3px;}
+  .phone-drawer-enabled .globe-section .view-switch .view-tab{font-size:9px;white-space:nowrap;padding:7px 5px;line-height:1.2;}
+  .phone-drawer-enabled .globe-section .view-switch-middle{min-width:0;flex:1.5 1 auto;}
+  .phone-drawer-enabled .globe-section .explorer-style-switch{top:calc(100% + 6px)!important;right:0;}
+  .phone-drawer-enabled .globe-top-label{display:none;}
+  .phone-drawer-enabled .info-panel{padding:8px 12px 12px;}
+  .phone-drawer-enabled .info-panel h2{margin:7px 0 6px;font-size:clamp(16px,2.4vw,20px);}
+  .phone-drawer-enabled .info-panel .thin-divider{margin:8px 0;}
+  .phone-drawer-enabled .info-panel .media-section-label{margin-bottom:6px;}
+  .phone-drawer-enabled .info-panel .media-stage{height:max(116px,30dvh);}
+  .phone-drawer-enabled .info-panel .viewer-toolbar{padding:4px 2px;}
+  .phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn{min-height:31px;}
+  .phone-drawer-enabled .info-panel .description-section{margin-top:9px;}
+  .phone-drawer-enabled .info-panel .description-section p{font-size:10px;line-height:1.45;}
+}
+@media (max-width: 600px) and (pointer: coarse) {
+  .phone-drawer-enabled .globe-section .view-switch{left:6px;right:6px;width:calc(100% - 12px);max-width:none;justify-content:center;gap:2px;}
+  .phone-drawer-enabled .globe-section .view-switch .view-tab{font-size:9px;padding:8px 4px;}
+  .phone-drawer-enabled .globe-section .view-switch-middle{flex:1.5 1 0;}
+  .phone-drawer-enabled .globe-section .view-switch-middle .view-tab{font-size:8.5px;}
+}

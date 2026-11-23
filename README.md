@@ -1,26 +1,23 @@
-# Sky Surfer Marian Apparitions Map — v1.34
+# Sky Surfer — Marian Apparitions Map v1.39
 
-## Changes from v1.30
+## v1.39: phone usability + removal of experimental fourth view
 
-- Kept the original **Sky Surfer star logo** in the top left unchanged. Updated **apparition location pins** on the satellite Explorer, MapLibre atmospheric globe and offline globe to a local, original Marian-themed blue-and-gold marker with an M and cross (`assets/marian-apparition-pin.svg`). Pins remain clickable and have selected-state feedback.
-- Kept the **Browse Apparitions** directory tall, with a scrollable country/entry list. The title, search field and footer remain visible as the list grows.
-- Moved **Satellite / Street Map** choices directly beneath the central **Marian Apparitions Map** tab, including on small screens. Switching preserves position, zoom and attached document viewer.
-- Added a compact **whole-site fullscreen icon** directly to the right of the day/night toggle. It expands the full Sky Surfer interface (header, map, sidebars, directory and PDF viewer), not just the PDF. Use the icon or Esc to exit. Some mobile browsers don't support web-page fullscreen.
-- Preserved all three Marian apparition locations, their PDFs, source metadata, theme persistence, 3D building features and original imported KML.
+- **God’s Eye View is completely removed**: the experimental fourth tab, remote iframe, bridge, installer and launcher, alternate globe styles, and related documentation are no longer included.
+- **The three original views are preserved**: Live Google Map, Marian Apparitions Map (Satellite / Street Map), and 3D globe.
+- **Phone portrait and landscape only:** selecting a marker in the Sky Surfer map, or choosing an entry from the apparition list/directory, opens the existing information/PDF panel as a left-side drawer inside the map. It keeps part of the map visible and has an accessible close button.
+- **Phone fullscreen**: fullscreen is map-first, with the tall introduction hidden. The drawer opens from the left, including when the phone is rotated sideways. The PDF FULLSCREEN control still opens the existing in-page expanded viewer.
+- **Phone embedded view**: the same mobile drawer works inside a responsive iframe. The containing site's iframe must permit fullscreen for the fullscreen button to work. The iframe's own height is controlled by the containing page, not by this ZIP.
+- **Desktop stays unchanged**: the normal right-side information panel, search, map controls, and PDF viewer remain.
 
-# Sky Surfer Marian Apparitions Map — v1.30
+Important limitation: Google's **Live Google My Maps** iframe controls its own pins and popups. Its pin clicks cannot directly open Sky Surfer's custom PDF drawer. To open Sky Surfer PDFs, use **Marian Apparitions Map**, **3D globe**, or the apparition list/directory.
 
-## Changes from v1.29
+## Run locally
 
-- Replaced emoji-only country flags with bundled PNG flags (generated from Noto Color Emoji graphics), avoiding Windows displaying `FR`, `MX`, or `PT` instead of flags. Ships flags for all ISO codes in `country-codes.js` so future countries work offline. No font files are included.
-- Enlarged the country directory to use most of the available viewport height, retaining a scrolling results area and accessible mobile layout.
-- Removed the **3 APPARITIONS** pill from the top bar. Kept the sun/moon theme toggle beside Browse Apparitions. The sidebar and directory counts remain for browsing context.
+1. Extract the entire ZIP, preserving the subfolders.
+2. Double-click `START_LOCAL_WINDOWS.bat` (requires Python 3) or host the static folder on GitHub Pages.
+3. Select an apparition in **Marian Apparitions Map** or **3D globe** to see its description and attached PDFs.
 
-- Added **Browse Apparitions** in the top header, opening an accessible, searchable directory overlay. Countries appear alphabetically by English country name and their locally bundled flag image, while apparition entries within each country are alphabetized by apparition title (years break ties). Each entry uses **apparition name – year** with the **city, region, country** subtitle and **no media count**. Selecting an entry closes the directory, navigates to that marker, and opens its PDF/image details in the existing panel.
-- The directory search matches apparition names, countries, city/region, years, descriptions, and associated PDF filenames; updates are generated directly from site-data.js, so no manually maintained directory is necessary.
-- Replaced the formerly tiny fullscreen icon with a high-contrast, labeled **FULLSCREEN** control (changes to **EXIT FULLSCREEN** while enlarged) in the normal and fullscreen PDF viewer. Kept continuous-page zoom/pan and PDF download controls unchanged.
-- Added an optional OpenStreetMap-derived 3D building-extrusion layer to the MapLibre atmospheric globe at close zoom (about level 15 onward). It uses the existing OpenFreeMap vector building source, remains hidden at worldwide zoom, and does not affect the original offline-globe fallback or map markers. Buildings are geometric extrusions, not photographic 3D models; coverage depends on OSM building data and live tiles.
-- Preserved night/day toggle, KML locations, historical descriptions, official source metadata, satellite/street map choice, and all three PDFs.
+---
 
 # Sky Surfer — Marian Apparitions Map v1.30
 
@@ -78,6 +75,6 @@ A planned later enhancement is a local Marian Apparitions Manager for editing ye
 
 
 ### v1.32 refinements
-- Each Marian location pin now contains a single gold **M**, with no decorative crosses above or below.
+- Marian markers use the gold **M** design.
 - Clicking **Marian Apparitions Map** a second time collapses **Satellite / Street Map**; clicking it again expands the options without resetting the camera.
 - On first opening a PDF, the entire **first page** fits inside the preview regardless of its aspect ratio. The existing wheel zoom, drag pan, multipage navigation, and mobile pinch controls remain. The viewer's Reset/Fit button now restores first-page fit.

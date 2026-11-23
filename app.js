@@ -37,6 +37,59 @@
   // Whole-app fullscreen: preserve map, sidebar, details, directory and theme.
   const siteFullscreenButton = $('siteFullscreen');
   const appShell = document.querySelector('.app-shell');
+  const detailPanel = $('infoPanel');
+  const originalPanelParent = detailPanel.parentElement;
+  let panelCloseTimer = 0;
+  let phoneDrawer = false;
+  // A coarse pointer + phone-sized viewport is used so resizing a desktop browser
+  // does not change the already-approved PC layout. This works in Squarespace iframes
+  // as well as when the app is opened directly on an Android phone.
+  function isPhoneViewport(){
+    return window.matchMedia('(pointer: coarse)').matches &&
+      window.innerWidth <= 1100 &&
+      Math.min(window.innerWidth, window.innerHeight) <= 600;
+  }
+  function syncPhoneDrawer(){
+    const enabled = isPhoneViewport();
+    if(phoneDrawer !== enabled){
+      phoneDrawer = enabled;
+      document.body.classList.toggle('phone-drawer-page', enabled);
+      appShell.classList.toggle('phone-drawer-enabled', enabled);
+      const newParent = enabled ? $('mapSection') : originalPanelParent;
+      if(detailPanel.parentElement !== newParent) newParent.appendChild(detailPanel);
+      if(!enabled){
+        clearTimeout(panelCloseTimer);
+        detailPanel.classList.remove('is-open');
+      } else if(!detailPanel.hidden) {
+        detailPanel.classList.add('is-open');
+      }
+    }
+  }
+  syncPhoneDrawer();
+  window.addEventListener('resize', syncPhoneDrawer, {passive:true});
+  function openDetailPanel(){
+    clearTimeout(panelCloseTimer);
+    syncPhoneDrawer();
+    detailPanel.hidden = false;
+    detailPanel.scrollTop = 0;
+    if(phoneDrawer){
+      detailPanel.classList.remove('is-open');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>detailPanel.classList.add('is-open')));
+    }
+  }
+  function hideDetailPanel(){
+    clearTimeout(panelCloseTimer);
+    if(!phoneDrawer){
+      detailPanel.hidden=true;
+      detailPanel.classList.remove('is-open');
+      return;
+    }
+    detailPanel.classList.remove('is-open');
+    panelCloseTimer=setTimeout(()=>{
+      if(!detailPanel.classList.contains('is-open'))detailPanel.hidden=true;
+    },310);
+  }
+
   function currentFullscreen(){ return document.fullscreenElement || document.webkitFullscreenElement; }
   function updateSiteFullscreenButton(){
     const active = !!currentFullscreen();
@@ -45,6 +98,7 @@
     siteFullscreenButton.title = active ? 'Exit fullscreen map' : 'Enter fullscreen map';
     siteFullscreenButton.querySelector('.site-fullscreen-expand').hidden = active;
     siteFullscreenButton.querySelector('.site-fullscreen-contract').hidden = !active;
+    syncPhoneDrawer();
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
   }
   siteFullscreenButton.addEventListener('click',async () => {
@@ -80,7 +134,7 @@
       const name=document.createElement('span');name.className='place-name';name.textContent=p.displayName || p.name;
       const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition') + ' · ' + ((p.media||[]).length?`${p.media.length} media`:'No media');
       const chev=document.createElement('span');chev.className='place-chevron';chev.textContent='›';
-      info.append(name,sub);btn.append(index,info,chev);btn.addEventListener('click',()=>selectLocation(p));container.append(btn);
+      info.append(name,sub);btn.append(index,info,chev);btn.addEventListener('click',()=>selectLocation(p,true));container.append(btn);
     }
     renderMarkers();
     window.SKY_SURFER_MAP?.refresh?.();
@@ -128,7 +182,7 @@
         const location=document.createElement('span');location.className='directory-place-sub';location.textContent=[p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ')||p.region||'';
         const arrow=document.createElement('span');arrow.className='directory-place-arrow';arrow.textContent='›';
         info.append(title,location);item.append(info,arrow);
-        item.addEventListener('click',()=>{closeDirectory();selectLocation(p);});
+        item.addEventListener('click',()=>{closeDirectory();selectLocation(p,true);});
         section.append(item);
       });list.append(section);
     }
@@ -178,8 +232,8 @@
     state.fly=reducedMotion?null:{start:performance.now(),dur:820,fromYaw:state.yaw,toYaw:shortestAngle(state.yaw,targetYaw),fromPitch:state.pitch,toPitch:targetPitch};
     if(reducedMotion){state.yaw=targetYaw;state.pitch=targetPitch;sceneDirty=true;renderMarkers();}
   }
-  function selectLocation(p){
-    state.selected=p; flyTo(p);window.SKY_SURFER_MAP?.select?.(p);$('infoPanel').hidden=false;
+  function selectLocation(p, fromSidebar=false){
+    state.selected=p; flyTo(p);window.SKY_SURFER_MAP?.select?.(p);openDetailPanel();
     $('placeTitle').textContent=p.displayName || p.name;
     $('placeLocation').textContent=[p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ');
     $('placeCoords').textContent=labelCoords(p);
@@ -194,9 +248,13 @@
     if(p.media?.length)renderMedia();
     buildPlaces();
     window.requestAnimationFrame(resize);
-    if(window.innerWidth <=800) setTimeout(()=>$('infoPanel').scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'nearest'}),400);
+    if(phoneDrawer && !currentFullscreen() && fromSidebar){
+      // A list/directory selection reveals the map, not a below-the-map PDF panel.
+      $('mapSection').scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'start'});
+    }
   }
-  function closePanel(){if(!$('mediaOverlay').hidden)closeMediaOverlay();state.selected=null;window.SKY_SURFER_MAP?.select?.(null);$('infoPanel').hidden=true;buildPlaces();window.requestAnimationFrame(resize);}
+  function closePanel(){if(!$('mediaOverlay').hidden)closeMediaOverlay();state.selected=null;window.SKY_SURFER_MAP?.select?.(null);hideDetailPanel();buildPlaces();window.requestAnimationFrame(resize);}
+  $('closePanel').setAttribute('aria-label','Close apparition details and return to map');
   $('closePanel').addEventListener('click',closePanel);
   // v1.9 continuous-page viewer, with Rosary-reference pointer-centered wheel zoom,
   // free 2-axis dragging, 2-finger pinch AND pan, and touch double-tap zoom.
@@ -729,7 +787,11 @@
     if(sceneDirty && (!softwareContext || !state.fly || time-softwareLastFrame>65)){softwareLastFrame=time;drawGlobe();$('coordinates').textContent=`${fmt(state.pitch/rad,'N','S')}   ${fmt(state.yaw/rad,'E','W')}`;sceneDirty=false;}
     requestAnimationFrame(tick);
   }
-  window.SKY_SURFER_APP={locations, selectLocation, getSelected:()=>state.selected, getFiltered:filtered};
+  window.SKY_SURFER_APP={locations, selectLocation, getSelected:()=>state.selected, getFiltered:filtered,
+    localGlobeZoomIn:()=>{state.zoom=clamp(state.zoom*1.2,.62,1.8);resize();},
+    localGlobeZoomOut:()=>{state.zoom=clamp(state.zoom/1.2,.62,1.8);resize();},
+    localGlobeReset:()=>{state.fly=null;state.yaw=-98*rad;state.pitch=39*rad;state.zoom=1;resize();}
+  };
   makeWebGL();
   window.addEventListener('resize',resize);
   if('ResizeObserver' in window)new ResizeObserver(()=>resize()).observe($('globeArea'));
