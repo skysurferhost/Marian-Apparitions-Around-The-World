@@ -556,20 +556,22 @@
   $('streetsBasemapBtn').addEventListener('click',()=>setBasemap('street'));
 
   function setMode(mode){
-    if(!['google','satellite','globe'].includes(mode))return;
+    if(!['google','satellite','globe','cinematic'].includes(mode))return;
     viewMode=mode;
-    const isGoogle=mode==='google',isExplorer=mode==='satellite',isGlobe=mode==='globe';
+    const isGoogle=mode==='google',isExplorer=mode==='satellite',isGlobe=mode==='globe',isCinematic=mode==='cinematic';
     document.body.dataset.viewMode=mode;
     $('mapSection').classList.toggle('google-active',isGoogle);
     $('mapSection').classList.toggle('satellite-active',isExplorer);
     $('mapSection').classList.toggle('globe-active',isGlobe);
+    $('mapSection').classList.toggle('cinematic-active',isCinematic);
+    $('cinematicStage').hidden=!isCinematic;
     $('googleLiveMap').hidden=!isGoogle;
     $('googleGuide').hidden=!isGoogle;
     root.hidden=!isExplorer;
 
     styleSwitch.hidden=!(isExplorer && explorerStyleExpanded);
     $('satelliteViewBtn').setAttribute('aria-expanded',String(isExplorer && explorerStyleExpanded));
-    for(const [id,active] of [['googleViewBtn',isGoogle],['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe]]){
+    for(const [id,active] of [['googleViewBtn',isGoogle],['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe],['cinematicViewBtn',isCinematic]]){
       $(id).classList.toggle('active',active);
       $(id).setAttribute('aria-pressed',String(active));
     }
@@ -582,8 +584,13 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> TEST v1.32`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':isCinematic?'GOD’S EYE VIEW · NATIVE':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> TEST v1.38`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
+    if(isCinematic){
+      window.SKY_SURFER_CINEMATIC?.activate?.();
+    }else{
+      window.SKY_SURFER_CINEMATIC?.deactivate?.();
+    }
     if(isExplorer){
       if(!map){
         if(!mapFailed)hideNotice();
@@ -610,14 +617,17 @@
     }else{explorerStyleExpanded=true;setMode('satellite');}
   });
   $('globeViewBtn').addEventListener('click',()=>setMode('globe'));
+  $('cinematicViewBtn').addEventListener('click',()=>setMode('cinematic'));
   $('refreshGoogle').addEventListener('click',()=>{const frame=$('googleMapFrame');frame.src=frame.src;});
   $('globeZoomIn').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomIn({duration:reducedMotion()?0:280});
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomIn({duration:reducedMotion()?0:300});
+    else if(viewMode==='cinematic')window.SKY_SURFER_CINEMATIC?.zoomIn?.();
   });
   $('globeZoomOut').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomOut({duration:reducedMotion()?0:280});
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomOut({duration:reducedMotion()?0:300});
+    else if(viewMode==='cinematic')window.SKY_SURFER_CINEMATIC?.zoomOut?.();
   });
   $('resetGlobe').addEventListener('click',()=>{
     // Restore ALL initial camera axes: map center, zoom, bearing AND pitch.
@@ -632,6 +642,8 @@
       }
       map?.stop();
       map?.easeTo({...EXPLORER_START,duration:reducedMotion()?0:950,essential:true});
+    }else if(viewMode==='cinematic'){
+      window.SKY_SURFER_CINEMATIC?.reset?.();
     }else if(viewMode==='globe' && globeReady){
       satelliteGlobe?.stop();
       satelliteGlobe?.easeTo({...GLOBE_START,duration:reducedMotion()?0:850,essential:true});
@@ -640,9 +652,10 @@
   window.addEventListener('resize',()=>{
     if(viewMode==='satellite')map?.resize();
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.resize();
+    else if(viewMode==='cinematic')window.SKY_SURFER_CINEMATIC?.resize?.();
   });
   window.SKY_SURFER_MAP={
-    refresh:updateMarkers,select,setMode,
+    refresh:()=>{updateMarkers();window.SKY_SURFER_CINEMATIC?.refresh?.();},select:place=>{select(place);window.SKY_SURFER_CINEMATIC?.select?.(place);},setMode,
     getView:()=>({mode:viewMode,basemapMode,zoom:map?.getZoom(),center:map?.getCenter(),ready:mapReady}),
     getTileStats:()=>({library:'MapLibre GL JS',style:tileModeLabels[basemapMode],ready:mapReady,failed:mapFailed,errorType:lastErrorType,error:lastError,report:browserReport()})
   };
