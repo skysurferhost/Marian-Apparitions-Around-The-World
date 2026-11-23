@@ -681,3 +681,152 @@ body.phone-drawer-page {overflow:auto;}
   .phone-drawer-enabled .globe-section .view-switch-middle{flex:1.5 1 0;}
   .phone-drawer-enabled .globe-section .view-switch-middle .view-tab{font-size:8.5px;}
 }
+
+
+/* v1.40 — Two-line mobile heading, fixed-height embedded phone experience,
+   and a taller document preview on desktop. Never change the approved PC map layout. */
+.sidebar-heading h1 .headline-intro {display:block;}
+.sidebar-heading h1 .headline-subject,.sidebar-heading h1 .headline-end {display:block;}
+
+/* The description was intentionally removed from the DOM on all devices.
+   Allow the right-side document preview to occupy the reclaimed vertical space. */
+.app-shell:not(.phone-drawer-enabled) .info-panel > .viewer-box:not([hidden]) {
+  flex:1 1 auto;
+  min-height:0;
+}
+.app-shell:not(.phone-drawer-enabled) .info-panel > .viewer-box:not([hidden]) .media-stage {
+  flex:1 1 auto;
+  height:auto;
+  min-height:260px;
+}
+
+/* Mobile uses the iframe viewport itself rather than creating an additional
+   scrollable document longer than the Squarespace embed. The map fills the
+   remaining room after a compact search/header area. */
+.app-shell.phone-drawer-enabled:not(:fullscreen) {
+  height:100dvh;
+  min-height:0;
+  overflow:hidden;
+}
+.phone-drawer-enabled .app-layout {
+  flex:1 1 auto;
+  min-height:0;
+  height:auto;
+  overflow:hidden;
+}
+.phone-drawer-enabled .sidebar {
+  flex:0 0 auto;
+  min-height:0;
+  max-height:calc(100% - 195px);
+  overflow:hidden;
+}
+.phone-drawer-enabled .globe-section {
+  flex:1 1 0;
+  min-height:195px;
+  height:auto;
+  overflow:hidden;
+}
+.phone-drawer-enabled .sidebar-heading h1 {
+  font-size:clamp(21px,5.8vw,28px);
+  line-height:1.04;
+  letter-spacing:-.65px;
+  margin:5px 0 5px;
+}
+.phone-drawer-enabled .sidebar-heading h1 .headline-intro,
+.phone-drawer-enabled .sidebar-heading h1 .headline-subject {display:inline;}
+.phone-drawer-enabled .sidebar-heading h1 .headline-end {display:block;}
+.phone-drawer-enabled .sidebar-heading {padding:8px 12px 5px;}
+.phone-drawer-enabled .sidebar-heading p {line-height:1.35;}
+.phone-drawer-enabled .search-box {height:36px;min-height:36px;margin:2px 10px 5px;}
+.phone-drawer-enabled .sidebar-tabs {padding:0 10px 5px;}
+.phone-drawer-enabled .sidebar-tabs .tab {padding:7px 6px;}
+.phone-drawer-enabled .list-heading {padding:4px 12px;}
+.phone-drawer-enabled .place-list {padding:0 8px 5px;}
+.phone-drawer-enabled .place-item {padding:5px 7px;}
+.phone-drawer-enabled .place-sub {font-size:9px;}
+
+/* For short landscape phones or unusually short embeds, keep the map as the
+   primary viewport and avoid a second nested vertical scrollbar. */
+@media (max-height:600px) {
+  .phone-drawer-enabled .sidebar-heading {padding:4px 10px 2px;}
+  .phone-drawer-enabled .sidebar-heading h1 {margin:3px 0;font-size:clamp(18px,3.5vw,24px);}
+  .phone-drawer-enabled .sidebar-heading p {font-size:9px;line-height:1.2;}
+  .phone-drawer-enabled .sidebar .eyebrow {font-size:7px;}
+  .phone-drawer-enabled .search-box {height:32px;min-height:32px;margin:1px 8px 3px;}
+  .phone-drawer-enabled .sidebar-tabs {padding:0 8px 3px;}
+  .phone-drawer-enabled .sidebar-tabs .tab {padding:5px;}
+  .phone-drawer-enabled .list-heading {display:none;}
+  .phone-drawer-enabled .place-list {padding:2px 6px 4px;}
+  .phone-drawer-enabled .place-item {padding:4px 5px;}
+}
+/* Phone fullscreen stays map-first as in v1.39. */
+.app-shell.phone-drawer-enabled:fullscreen .globe-section,
+.app-shell.phone-drawer-enabled:-webkit-full-screen .globe-section {
+  flex:1 1 auto;
+  height:auto;
+  min-height:0;
+}
+
+/* In phone landscape there is too little height for a full introductory sidebar.
+   Keep search accessible as a slim strip and leave the map the remaining height.
+   Apparitions remain accessible through the top-bar Browse button and markers. */
+@media (orientation:landscape) and (max-height:480px) {
+  .phone-drawer-enabled .sidebar-heading,
+  .phone-drawer-enabled .sidebar-tabs,
+  .phone-drawer-enabled .list-heading,
+  .phone-drawer-enabled .place-list {display:none!important;}
+  .phone-drawer-enabled .sidebar {
+    flex:0 0 43px;
+    height:43px;
+    max-height:none;
+    overflow:visible;
+  }
+  .phone-drawer-enabled .sidebar .search-box {
+    height:33px;
+    min-height:33px;
+    margin:5px 9px;
+  }
+}
+
+/* v1.40 — mobile-only marker framing + clean two-line headline.
+   The mobile panel leaves a useful portion of the map on the right.
+   All desktop sizing remains unchanged. */
+.phone-drawer-enabled .sidebar-heading h1 .headline-top-line {display:block;white-space:nowrap;}
+.phone-drawer-enabled .sidebar-heading h1 .headline-end {display:block;white-space:nowrap;}
+.phone-drawer-enabled .sidebar-heading h1 {
+  font-size:clamp(18px,5.25vw,25px);
+  line-height:1.07;
+}
+/* The introductory section must not overflow narrow Squarespace iframes. */
+@media (max-width:380px){
+  .phone-drawer-enabled .sidebar-heading h1 {font-size:clamp(17px,5.3vw,21px);letter-spacing:-.7px;}
+}
+/* Keep a larger, touch-usable map portion visible next to the document. */
+@media (orientation:portrait){
+  .phone-drawer-enabled .info-panel,.phone-drawer-enabled .info-panel[hidden]{width:min(68%,340px);}
+}
+/* Landscape retains the half-width phone drawer and its internal PDF scrolling. */
+@media (orientation:landscape) and (max-height:600px){
+  .phone-drawer-enabled .info-panel,.phone-drawer-enabled .info-panel[hidden]{width:min(49%,420px);}
+}
+/* Compact landscape embeds: put the zoom/reset controls along the lower right
+   instead of overlapping the view-selector tabs at the top. */
+@media (orientation:landscape) and (max-height:480px){
+  .phone-drawer-enabled .globe-section .globe-controls {
+    top:auto!important;
+    bottom:8px!important;
+    right:7px!important;
+    transform:none!important;
+    width:auto!important;
+    flex-direction:row;
+    border-radius:8px;
+  }
+  .phone-drawer-enabled .globe-section .globe-controls button {
+    width:37px;
+    min-width:37px;
+    height:35px;
+    border-bottom:0;
+    border-right:1px solid rgba(214,229,226,.14);
+  }
+  .phone-drawer-enabled .globe-section .globe-controls button:last-child {border-right:0;}
+}

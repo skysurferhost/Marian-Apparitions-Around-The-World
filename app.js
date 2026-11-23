@@ -66,7 +66,10 @@
     }
   }
   syncPhoneDrawer();
-  window.addEventListener('resize', syncPhoneDrawer, {passive:true});
+  window.addEventListener('resize', ()=>{
+    syncPhoneDrawer();
+    if(phoneDrawer && state.selected)window.SKY_SURFER_MAP?.phoneViewportChanged?.(state.selected);
+  }, {passive:true});
   function openDetailPanel(){
     clearTimeout(panelCloseTimer);
     syncPhoneDrawer();
@@ -228,18 +231,18 @@
   function smooth(a,b,t){return a+(b-a)*t;}
   function shortestAngle(from,to){return from+Math.atan2(Math.sin(to-from),Math.cos(to-from));}
   function flyTo(p){
+    // Phone-only: automatically zoom the fallback globe so the selected shrine
+    // remains easy to locate in the uncovered map area beside the left PDF drawer.
+    if(phoneDrawer)state.zoom=Math.max(state.zoom,1.28);
     const targetYaw=p.lng*rad, targetPitch=clamp(p.lat*rad,-1.36,1.36);
     state.fly=reducedMotion?null:{start:performance.now(),dur:820,fromYaw:state.yaw,toYaw:shortestAngle(state.yaw,targetYaw),fromPitch:state.pitch,toPitch:targetPitch};
     if(reducedMotion){state.yaw=targetYaw;state.pitch=targetPitch;sceneDirty=true;renderMarkers();}
   }
-  function selectLocation(p, fromSidebar=false){
+  function selectLocation(p){
     state.selected=p; flyTo(p);window.SKY_SURFER_MAP?.select?.(p);openDetailPanel();
     $('placeTitle').textContent=p.displayName || p.name;
     $('placeLocation').textContent=[p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ');
     $('placeCoords').textContent=labelCoords(p);
-    $('placeDescription').textContent=p.description||'No description has been provided for this apparition.';
-    $('openEarth').href=`https://www.google.com/maps?q=${encodeURIComponent(`${p.lat},${p.lng}`)}`;
-    $('openStreet').href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(`${p.lat},${p.lng}`)}`;
     const fileCount=new Set((p.media||[]).map(m=>m.src)).size;
     const pageCount=(p.media||[]).filter(m=>m.type==='pdf').length;
     $('mediaCounter').textContent=fileCount?`${fileCount} FILE${fileCount===1?'':'S'}${pageCount?' · '+pageCount+' PDF PAGE'+(pageCount===1?'':'S'):''}`:'0 FILES';
@@ -248,12 +251,17 @@
     if(p.media?.length)renderMedia();
     buildPlaces();
     window.requestAnimationFrame(resize);
-    if(phoneDrawer && !currentFullscreen() && fromSidebar){
-      // A list/directory selection reveals the map, not a below-the-map PDF panel.
-      $('mapSection').scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'start'});
-    }
+    // Do not scroll the containing Squarespace page/iframe on marker or list selection.
+    // The side drawer overlays the visible map without changing the viewport.
   }
-  function closePanel(){if(!$('mediaOverlay').hidden)closeMediaOverlay();state.selected=null;window.SKY_SURFER_MAP?.select?.(null);hideDetailPanel();buildPlaces();window.requestAnimationFrame(resize);}
+  function closePanel(){
+    if(!$('mediaOverlay').hidden)closeMediaOverlay();
+    const previous=state.selected;
+    state.selected=null;
+    window.SKY_SURFER_MAP?.select?.(null);
+    hideDetailPanel();buildPlaces();window.requestAnimationFrame(resize);
+    if(phoneDrawer && previous)window.SKY_SURFER_MAP?.recenterAfterDrawer?.(previous);
+  }
   $('closePanel').setAttribute('aria-label','Close apparition details and return to map');
   $('closePanel').addEventListener('click',closePanel);
   // v1.9 continuous-page viewer, with Rosary-reference pointer-centered wheel zoom,
@@ -708,7 +716,13 @@
     if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}
     const base=Math.min(globeW,globeH)*0.385;
     globeRadius=base*state.zoom;
-    globeCenterX=globeW*.5;
+    // Shift the globe's projected centre to the uncovered RIGHT side when a
+    // mobile marker is selected. Do not move the desktop globe or overlay.
+    if(phoneDrawer && state.selected){
+      const landscape=window.matchMedia('(orientation: landscape)').matches;
+      const panelWidth=Math.min(globeW*(landscape?.49:.68),landscape?420:340);
+      globeCenterX=(globeW+panelWidth)*.5;
+    }else globeCenterX=globeW*.5;
     globeCenterY=globeH*.51;
     sceneDirty=true;renderMarkers();
     if($('stars').width!==cw||$('stars').height!==ch){$('stars').width=cw;$('stars').height=ch;drawStars();}

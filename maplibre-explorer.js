@@ -329,12 +329,41 @@
     if(zoom>=15 && !globeAutoTilt){globeAutoTilt=true;satelliteGlobe.easeTo({pitch:48,duration:reducedMotion()?0:550});}
     else if(zoom<13 && globeAutoTilt){globeAutoTilt=false;satelliteGlobe.easeTo({pitch:0,duration:reducedMotion()?0:450});}
   }
+  // Mobile only: keep the chosen marker in the exposed RIGHT-hand map region,
+  // accounting for the left-hand PDF drawer in either phone orientation.
+  function isPhoneDrawer(){return !!document.querySelector('.app-shell.phone-drawer-enabled');}
+  function phoneMarkerOffset(){
+    if(!isPhoneDrawer())return [0,0];
+    const width=$('mapSection').getBoundingClientRect().width;
+    // A hidden drawer can report its old parent width before it opens.
+    // Compute from phone-specific CSS rules instead so selection is accurate.
+    const landscape=window.matchMedia('(orientation: landscape)').matches;
+    const panelWidth=Math.min(width*(landscape?.49:.68),landscape?420:340);
+    return [Math.round(Math.min(width-45,panelWidth)/2),0];
+  }
+  function recenterAfterDrawer(place){
+    if(!place || !isPhoneDrawer())return;
+    const active=viewMode==='satellite'?map:viewMode==='globe'?satelliteGlobe:null;
+    const ready=viewMode==='satellite'?mapReady:globeReady;
+    if(!active||!ready)return;
+    active.stop();
+    active.easeTo({center:[place.lng,place.lat],zoom:active.getZoom(),offset:[0,0],duration:reducedMotion()?0:400,essential:true});
+  }
+  function phoneViewportChanged(place){
+    if(!place||!isPhoneDrawer())return;
+    const active=viewMode==='satellite'?map:viewMode==='globe'?satelliteGlobe:null;
+    const ready=viewMode==='satellite'?mapReady:globeReady;
+    if(!active||!ready)return;
+    // Re-frame after the screen rotates; preserve the user's current zoom.
+    active.resize();
+    active.easeTo({center:[place.lng,place.lat],zoom:active.getZoom(),offset:phoneMarkerOffset(),duration:reducedMotion()?0:350,essential:true});
+  }
   function moveGlobeToSelected(place) {
     if(!place || !satelliteGlobe || !globeReady || viewMode!=='globe')return;
     const current=satelliteGlobe.getZoom();
     satelliteGlobe.stop();
-    satelliteGlobe.easeTo({center:[place.lng,place.lat], zoom:Math.max(current,3.2),
-      pitch:0, bearing:0, duration:reducedMotion()?0:1150, essential:true});
+    satelliteGlobe.easeTo({center:[place.lng,place.lat], zoom:Math.max(current,isPhoneDrawer()?4.4:3.2),
+      offset:phoneMarkerOffset(),pitch:0, bearing:0, duration:reducedMotion()?0:1150, essential:true});
   }
   function globeFallback(err) {
     globeFailed=true;globePending=false;globeReady=false;
@@ -472,7 +501,7 @@
     while(lng-start.lng>180)lng-=360;
     while(lng-start.lng< -180)lng+=360;
     map.easeTo({center:[lng,place.lat],zoom:destinationZoom,
-      duration:reducedMotion()?0:Math.min(1750,Math.max(760,920+Math.abs(lng-start.lng)*7)),
+      offset:phoneMarkerOffset(),duration:reducedMotion()?0:Math.min(1750,Math.max(760,920+Math.abs(lng-start.lng)*7)),
       easing:t=>t*t*(3-2*t),essential:true});
   }
   function select(place){pendingSelection=place;updateMarkers();if(place){
@@ -582,7 +611,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.39`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.40`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
@@ -643,6 +672,7 @@
   });
   window.SKY_SURFER_MAP={
     refresh:()=>{updateMarkers();},select:place=>{select(place);},setMode,
+    phoneViewportChanged,recenterAfterDrawer,
     getView:()=>({mode:viewMode,basemapMode,zoom:map?.getZoom(),center:map?.getCenter(),ready:mapReady}),
     getTileStats:()=>({library:'MapLibre GL JS',style:tileModeLabels[basemapMode],ready:mapReady,failed:mapFailed,errorType:lastErrorType,error:lastError,report:browserReport()})
   };

@@ -1,6 +1,15 @@
-# Sky Surfer — Marian Apparitions Map v1.39
+## v1.40 — Embedded mobile layout + larger PDF viewer
 
-## v1.39: phone usability + removal of experimental fourth view
+- Phone heading now wraps in two intentional lines rather than three or more.
+- On phones, the map fits within the available embed viewport rather than forcing an additional scroll inside the map app. Squarespace must still give the iframe adequate height for the desired map size.
+- Removed About This Apparition, its description, and the external links below it on all devices; apparition descriptions remain in site-data.js for searching.
+- Removed the automatic scroll-to-map action when selecting an apparition on a phone, so the Squarespace page does not jump.
+- The existing desktop right-side PDF preview expands vertically to fill the space; mobile PDF and drawer controls remain intact.
+- Existing satellite / live Google / 3D globe views and the Marian markers remain unchanged. God's Eye View remains removed.
+
+# Sky Surfer — Marian Apparitions Map v1.40
+
+## v1.40: phone usability + removal of experimental fourth view
 
 - **God’s Eye View is completely removed**: the experimental fourth tab, remote iframe, bridge, installer and launcher, alternate globe styles, and related documentation are no longer included.
 - **The three original views are preserved**: Live Google Map, Marian Apparitions Map (Satellite / Street Map), and 3D globe.
@@ -78,3 +87,13 @@ A planned later enhancement is a local Marian Apparitions Manager for editing ye
 - Marian markers use the gold **M** design.
 - Clicking **Marian Apparitions Map** a second time collapses **Satellite / Street Map**; clicking it again expands the options without resetting the camera.
 - On first opening a PDF, the entire **first page** fits inside the preview regardless of its aspect ratio. The existing wheel zoom, drag pan, multipage navigation, and mobile pinch controls remain. The viewer's Reset/Fit button now restores first-page fit.
+
+
+### v1.40 — embedded mobile map and PDF usability
+- Removed the About This Apparition description block on desktop and mobile.
+- Made the document preview taller in desktop detail view while retaining the right panel.
+- Removed the automatic selection `scrollIntoView` so Squarespace does not jump the embedded page.
+- Shortened phone heading into two lines: “Explore Marian Apparitions / Around the World”.
+- Phone-only location selection zooms and keeps the marker in the visible RIGHT side of the map beside the left-side PDF drawer in portrait and landscape, including on rotation.
+- The Google My Maps iframe retains Google's own marker behavior; Sky Surfer's custom Explorer and Globe map markers use the PDF drawer.
+- The original three map views are retained; God's Eye View integration is not included.
