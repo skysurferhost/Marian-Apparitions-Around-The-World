@@ -830,3 +830,182 @@ body.phone-drawer-page {overflow:auto;}
   }
   .phone-drawer-enabled .globe-section .globe-controls button:last-child {border-right:0;}
 }
+
+
+/* v1.41 — Mobile-only compact document header and touch-map cleanup.
+   Desktop right panel and desktop mouse guidance remain as in v1.40. */
+.street-view-link {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  width:max-content;
+  max-width:100%;
+  margin:7px 0 0;
+  color:var(--gold);
+  text-decoration:none;
+  font-size:11px;
+  font-weight:650;
+  letter-spacing:.15px;
+  border-bottom:1px solid rgba(225,184,119,.38);
+  padding-bottom:5px;
+}
+.street-view-link:hover,.street-view-link:focus-visible {color:#f7dfa9;border-color:currentColor;}
+:root[data-theme="day"] .street-view-link {color:#886529;}
+/* The satellite/3D map already has touch controls; desktop mouse hints
+   covered map imagery and copyright attributions inside mobile iframes. */
+.phone-drawer-enabled #globeHelp {display:none!important;}
+.phone-drawer-enabled .info-panel,
+.phone-drawer-enabled .info-panel[hidden] {
+  padding:9px 9px 12px;
+  scrollbar-width:thin;
+}
+.phone-drawer-enabled .info-header {
+  top:-9px;
+  padding:3px 0 5px;
+  min-height:34px;
+  gap:4px;
+}
+.phone-drawer-enabled .info-header .eyebrow {font-size:8px;letter-spacing:.85px;white-space:nowrap;}
+.phone-drawer-enabled .info-panel .close-panel {
+  width:33px;height:33px;min-width:33px;min-height:33px;font-size:23px;
+}
+.phone-drawer-enabled .info-panel h2 {
+  font-size:clamp(17px,4.8vw,23px);
+  line-height:1.16;
+  letter-spacing:-.35px;
+  margin:5px 0 5px;
+  overflow-wrap:anywhere;
+}
+.phone-drawer-enabled .info-panel #placeLocation {
+  font-size:9px;
+  line-height:1.35;
+  letter-spacing:.15px;
+  margin:2px 0 0;
+}
+.phone-drawer-enabled .info-panel #placeCoords {display:none;}
+.phone-drawer-enabled .info-panel .street-view-link {
+  font-size:10px;
+  line-height:1.2;
+  padding:5px 0 4px;
+  margin:2px 0 0;
+  min-height:27px;
+}
+.phone-drawer-enabled .info-panel .thin-divider {margin:6px 0 8px;}
+.phone-drawer-enabled .info-panel .media-section-label {
+  font-size:9px;
+  letter-spacing:.5px;
+  margin-bottom:5px;
+}
+.phone-drawer-enabled .info-panel .media-section-label #mediaCounter {display:none;}
+/* Two compact rows: document navigation + fullscreen icon, then zoom + fit.
+   All existing viewer controls remain functional and touch accessible. */
+.phone-drawer-enabled .info-panel .viewer-toolbar {
+  display:grid;
+  grid-template-columns: minmax(27px,1fr) minmax(54px,1.5fr) minmax(27px,1fr) minmax(32px,1fr);
+  grid-template-areas:
+    "prev page next full"
+    "minus zoom plus fit";
+  justify-items:stretch;
+  align-items:center;
+  gap:3px;
+  padding:5px;
+  height:auto;
+  min-height:0;
+}
+.phone-drawer-enabled .info-panel .viewer-toolbar .viewer-spacer {display:none;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #mediaPrev {grid-area:prev;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #pageLabel {grid-area:page;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #mediaNext {grid-area:next;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #mediaZoomOut {grid-area:minus;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #zoomLabel {grid-area:zoom;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #mediaZoomIn {grid-area:plus;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #mediaReset {grid-area:fit;}
+.phone-drawer-enabled .info-panel .viewer-toolbar button,
+.phone-drawer-enabled .info-panel .viewer-toolbar #pageLabel,
+.phone-drawer-enabled .info-panel .viewer-toolbar #zoomLabel {
+  width:100%;min-width:0;max-width:100%;min-height:30px;height:30px;
+  margin:0;padding:0 2px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;text-align:center;white-space:nowrap;
+}
+.phone-drawer-enabled .info-panel .viewer-toolbar #pageLabel {font-size:8.5px;letter-spacing:-.2px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar #zoomLabel {font-size:9px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn {
+  grid-area:full;
+  display:flex;
+  width:100%;height:30px;min-height:30px;
+  margin:0;padding:0;
+  flex:none;
+  border-radius:4px;
+}
+.phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn svg {width:17px;height:17px;}
+.phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn span {display:none;}
+.phone-drawer-enabled .info-panel .media-stage {
+  height:clamp(160px,31dvh,270px);
+  min-height:160px;
+}
+.phone-drawer-enabled .info-panel .viewer-box {flex:0 0 auto;min-height:0;}
+.phone-drawer-enabled .info-panel .viewer-footer {padding:5px;}
+/* Override the earlier landscape toolbar/fullscreen rules while retaining a
+   scrollable PDF panel on very short phone screens. */
+@media (orientation:landscape) and (max-height:600px) {
+  .phone-drawer-enabled .info-panel h2 {font-size:clamp(16px,2.4vw,21px);}
+  .phone-drawer-enabled .info-panel .media-stage {height:160px;min-height:160px;}
+  .phone-drawer-enabled .info-panel .viewer-toolbar {padding:3px;gap:2px;}
+  .phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn {height:30px;min-height:30px;}
+}
+/* Preserve the existing larger fullscreen PDF overlay: these compact rules
+   intentionally target only the viewer while it is inside the side drawer. */
+
+/* v1.41 — very short landscape phones: document-first drawer.
+   Don't burn the entire map height on stacked PDF controls. */
+@media (orientation:landscape) and (max-height:480px) {
+  .phone-drawer-enabled .info-panel,
+  .phone-drawer-enabled .info-panel[hidden] {padding:7px 8px 10px;}
+  .phone-drawer-enabled .info-header {
+    position:absolute;
+    top:6px;right:7px;left:auto;
+    width:30px;height:30px;min-height:0;
+    z-index:5;padding:0;
+    background:transparent;
+  }
+  .phone-drawer-enabled .info-header .eyebrow {display:none;}
+  .phone-drawer-enabled .info-header .close-panel {
+    width:30px;height:30px;min-width:30px;min-height:30px;
+    font-size:22px;
+  }
+  .phone-drawer-enabled .info-panel h2 {
+    font-size:clamp(15px,2.45vw,20px);
+    margin:1px 33px 1px 0;
+    line-height:1.1;
+  }
+  .phone-drawer-enabled .info-panel #placeLocation {display:none;}
+  .phone-drawer-enabled .info-panel .street-view-link {
+    margin:0 0 1px;min-height:20px;
+    padding:2px 0 1px;
+  }
+  .phone-drawer-enabled .info-panel .thin-divider {margin:2px 0 3px;}
+  .phone-drawer-enabled .info-panel .media-section-label {margin-bottom:3px;}
+  .phone-drawer-enabled .info-panel .media-stage {height:clamp(104px,36dvh,170px);min-height:104px;}
+}
+@media (orientation:landscape) and (max-height:480px) and (min-width:720px) {
+  .phone-drawer-enabled .info-panel .viewer-toolbar {
+    display:flex;
+    flex-wrap:nowrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:2px;
+    padding:3px 2px;
+    min-height:35px;
+  }
+  .phone-drawer-enabled .info-panel .viewer-toolbar button {flex:1 1 0;min-width:24px;max-width:40px;}
+  .phone-drawer-enabled .info-panel .viewer-toolbar #pageLabel {flex:1.5 1 0;min-width:47px;max-width:65px;}
+  .phone-drawer-enabled .info-panel .viewer-toolbar #zoomLabel {flex:1 1 0;min-width:33px;max-width:50px;}
+  .phone-drawer-enabled .info-panel .viewer-toolbar .viewer-fullscreen-btn {flex:0 1 37px;width:37px;min-width:29px;}
+}
+
+/* Small embedded phone frames benefit from giving the map and PDF more room;
+   the heading, search and location cards already explain the experience. */
+@media (max-width:380px) and (orientation:portrait) {
+  .phone-drawer-enabled .sidebar-heading p {display:none;}
+  .phone-drawer-enabled .sidebar-heading {padding-bottom:2px;}
+}
