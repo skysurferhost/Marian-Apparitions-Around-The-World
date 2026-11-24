@@ -1,3 +1,10 @@
+## v1.43 — Phone tap-to-dismiss and directory discoverability
+
+- Restored the gold diamond icon inside the upper-left site link (Marian Apparitions URL unchanged).
+- On phone portrait and landscape, tapping unused map imagery closes the selected apparition's PDF/details drawer. Dragging, pinching, long pressing, selecting another marker, and tapping a map control do **not** dismiss the drawer. The custom behavior applies to the Sky Surfer satellite map and globe, not to cross-origin Google My Maps iframe taps.
+- In phone fullscreen, the directory button now visibly says **Directory** instead of relying on an unlabeled list icon; it opens the existing searchable Marian Apparitions Directory.
+- The three original views, desktop right-side details panel, PDFs, and viewer overlay are preserved.
+
 ## v1.42 — cleaner embedded header, PDF navigation, and headline
 
 - Updated the main headline to **Explore Marian Apparitions Around the World!**.
@@ -15,7 +22,7 @@
 - The existing desktop right-side PDF preview expands vertically to fill the space; mobile PDF and drawer controls remain intact.
 - Existing satellite / live Google / 3D globe views and the Marian markers remain unchanged. God's Eye View remains removed.
 
-# Sky Surfer — Marian Apparitions Map v1.42
+# Sky Surfer — Marian Apparitions Map v1.43
 
 ## v1.41: phone usability + removal of experimental fourth view
 

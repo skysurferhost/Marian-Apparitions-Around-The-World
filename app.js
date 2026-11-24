@@ -269,6 +269,52 @@
   }
   $('closePanel').setAttribute('aria-label','Close apparition details and return to map');
   $('closePanel').addEventListener('click',closePanel);
+
+  // Phone-only: a brief, single-finger TAP on empty map imagery dismisses
+  // the details drawer. Preserve the drawer during drags, pinches, long presses,
+  // marker selection, and map UI button taps. Register in capture phase to
+  // observe MapLibre's pointer-captured gestures without stealing them.
+  const mapTapSurface = $('mapSection');
+  let potentialMapTap = null;
+  const mapTouchIds = new Set();
+  let mapMultiTouch = false;
+  function isBareMapTarget(target){
+    if(!(target instanceof Element))return false;
+    if(!target.closest('#mapLibreCanvas, #mapLibreGlobeCanvas, #globe, #globeArea'))return false;
+    return !target.closest('button, a, iframe, input, .sat-pin, .map-marker, .maplibregl-marker, .maplibregl-control-container, .globe-controls, .view-switch, .explorer-style-switch, .info-panel, .map-notice, .map-diagnostic, .map-credits, .maplibre-globe-credit, .globe-top-label');
+  }
+  mapTapSurface.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='touch')return;
+    mapTouchIds.add(e.pointerId);
+    if(mapTouchIds.size>1){mapMultiTouch=true;potentialMapTap=null;return;}
+    if(!phoneDrawer || !state.selected || !isBareMapTarget(e.target) ||
+       !$('mediaOverlay').hidden || !directory.hidden){potentialMapTap=null;return;}
+    potentialMapTap={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now(),moved:false};
+  },true);
+  window.addEventListener('pointermove',e=>{
+    if(!potentialMapTap || e.pointerId!==potentialMapTap.id)return;
+    if(Math.hypot(e.clientX-potentialMapTap.x,e.clientY-potentialMapTap.y)>9)
+      potentialMapTap.moved=true;
+  },true);
+  window.addEventListener('pointerup',e=>{
+    if(e.pointerType!=='touch')return;
+    const attempt=potentialMapTap;
+    const completed=attempt && attempt.id===e.pointerId;
+    if(completed)potentialMapTap=null;
+    const eligible=completed && !mapMultiTouch && !attempt.moved &&
+      Math.hypot(e.clientX-attempt.x,e.clientY-attempt.y)<=9 &&
+      performance.now()-attempt.at<=420 &&
+      phoneDrawer && state.selected && directory.hidden && $('mediaOverlay').hidden;
+    mapTouchIds.delete(e.pointerId);
+    if(mapTouchIds.size===0)mapMultiTouch=false;
+    if(eligible)closePanel();
+  },true);
+  window.addEventListener('pointercancel',e=>{
+    mapTouchIds.delete(e.pointerId);
+    if(potentialMapTap?.id===e.pointerId)potentialMapTap=null;
+    if(mapTouchIds.size===0)mapMultiTouch=false;
+  },true);
+
   // v1.9 continuous-page viewer, with Rosary-reference pointer-centered wheel zoom,
   // free 2-axis dragging, 2-finger pinch AND pan, and touch double-tap zoom.
   // Entirely local: uses high-resolution page images generated from the attached PDFs.
