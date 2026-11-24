@@ -1,3 +1,11 @@
+## v1.42 — cleaner embedded header, PDF navigation, and headline
+
+- Updated the main headline to **Explore Marian Apparitions Around the World!**.
+- Removed the Sky Surfer wordmark and emblem from **the map app header**; the top-left link now reads **MARIAN APPARITIONS** and opens `https://www.sky-surfer.com/marian-apparitions` in a new tab. The surrounding Squarespace website header (outside the iframe) is controlled in Squarespace, not this app.
+- Renamed **Try the Street View** to **Street View**, preserving its Google Maps panorama link for the selected apparition. Moved this link to the bottom of the details panel, after the PDF viewer, so the PDF begins higher.
+- Replaced the long mixed desktop/phone PDF gestures with device-specific concise text: **Drag to pan · Pinch to zoom** on phones, mouse/keyboard hints on desktop. Improved the expanded PDF overlay footer's layout in phone portrait and landscape.
+- Preserved the three map views, the mobile left drawer, the desktop right panel, the Marian marker design, and all PDF assets.
+
 ## v1.41 — Embedded mobile layout + larger PDF viewer
 
 - Phone heading now wraps in two intentional lines rather than three or more.
@@ -7,7 +15,7 @@
 - The existing desktop right-side PDF preview expands vertically to fill the space; mobile PDF and drawer controls remain intact.
 - Existing satellite / live Google / 3D globe views and the Marian markers remain unchanged. God's Eye View remains removed.
 
-# Sky Surfer — Marian Apparitions Map v1.41
+# Sky Surfer — Marian Apparitions Map v1.42
 
 ## v1.41: phone usability + removal of experimental fourth view
 

@@ -1009,3 +1009,104 @@ body.phone-drawer-page {overflow:auto;}
   .phone-drawer-enabled .sidebar-heading p {display:none;}
   .phone-drawer-enabled .sidebar-heading {padding-bottom:2px;}
 }
+
+
+/* v1.42 — Clean page link in the top-left (no duplicate Sky Surfer wordmark).
+   The Squarespace website header, if present, is controlled separately. */
+.topbar .brand-page-link {
+  display:inline-flex;
+  align-items:center;
+  flex:0 1 auto;
+  min-width:0;
+  padding:8px 0;
+  text-decoration:none;
+  color:#e9d4af;
+}
+.topbar .brand-page-link .brand-page-label {
+  font-size:clamp(10px,1.1vw,13px);
+  line-height:1.2;
+  font-weight:700;
+  letter-spacing:1.8px;
+  white-space:nowrap;
+}
+.topbar .brand-page-link:hover .brand-page-label,
+.topbar .brand-page-link:focus-visible .brand-page-label {color:#ffe5af;text-decoration:underline;text-underline-offset:4px;}
+:root[data-theme="day"] .topbar .brand-page-link {color:#8e6a36;}
+@media(max-width:520px){
+  .topbar .brand-page-link .brand-page-label {font-size:10px;letter-spacing:.75px;}
+}
+
+/* Street View remains a real link, but belongs BELOW the PDF rather than
+   between the apparition title and its page preview. */
+.info-panel .street-view-footer {
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin:13px 0 0;
+  padding:10px 0 2px;
+  border-top:1px solid var(--line);
+}
+.info-panel .street-view-footer .street-view-link {
+  margin:0;
+  padding:2px 0 5px;
+  gap:7px;
+  min-height:28px;
+  width:auto;
+  font-size:11px;
+  font-weight:700;
+}
+.phone-drawer-enabled .info-panel .street-view-footer {margin:7px 0 0;padding:7px 0 3px;}
+.phone-drawer-enabled .info-panel .street-view-footer .street-view-link {margin:0;padding:3px 0 5px;min-height:29px;font-size:11px;}
+@media (orientation:landscape) and (max-height:600px) {
+  .phone-drawer-enabled .info-panel .street-view-footer {margin:5px 0 0;padding:5px 0 1px;}
+}
+
+/* PDF help is context-aware instead of mixing desktop and phone gestures.
+   The portrait/landscape expanded document keeps its instructions concise. */
+.viewer-instructions .viewer-help-phone {display:none;}
+.viewer-instructions .viewer-help-desktop {display:inline;}
+.viewer-instructions .viewer-help-desktop > span,
+.viewer-instructions .viewer-help-phone > span {display:inline;margin:0 5px;color:#bbab8b;}
+.viewer-footer > .viewer-instructions {max-width:100%;font-size:9px;line-height:1.45;letter-spacing:.15px;}
+@media (pointer:coarse) and (max-width:1024px) {
+  .viewer-instructions .viewer-help-desktop {display:none;}
+  .viewer-instructions .viewer-help-phone {display:inline;}
+  .media-overlay-dialog .viewer-footer {
+    display:flex;
+    flex:0 0 auto;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:nowrap;
+    gap:10px;
+    min-height:50px;
+    padding:7px 10px;
+    text-align:left;
+  }
+  .media-overlay-dialog .viewer-footer > .viewer-instructions {
+    display:block!important;
+    flex:1 1 auto;
+    min-width:0;
+    margin:0;
+    font-size:10px;
+    line-height:1.4;
+    white-space:normal;
+    letter-spacing:0;
+    color:#a8c3cc;
+  }
+  .media-overlay-dialog .viewer-footer #openOriginal {
+    flex:0 0 auto;
+    min-width:0;
+    min-height:34px;
+    padding:8px 12px;
+    font-size:10px;
+    letter-spacing:.25px;
+    white-space:nowrap;
+  }
+}
+@media (pointer:coarse) and (max-width:355px){
+  .media-overlay-dialog .viewer-footer {flex-direction:column;gap:4px;padding:5px 7px 7px;}
+  .media-overlay-dialog .viewer-footer > .viewer-instructions {text-align:center;font-size:10px;}
+  .media-overlay-dialog .viewer-footer #openOriginal {min-height:29px;padding:6px 10px;}
+}

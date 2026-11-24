@@ -247,7 +247,7 @@
     // determined by Google; the link does not imply a panorama exists at the shrine.
     const streetView=$('streetViewLink');
     streetView.href='https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+encodeURIComponent(`${p.lat},${p.lng}`);
-    streetView.title='Try Google Street View near '+(p.displayName||p.name);
+    streetView.title='Open Google Street View near '+(p.displayName||p.name);
     const fileCount=new Set((p.media||[]).map(m=>m.src)).size;
     const pageCount=(p.media||[]).filter(m=>m.type==='pdf').length;
     $('mediaCounter').textContent=fileCount?`${fileCount} FILE${fileCount===1?'':'S'}${pageCount?' · '+pageCount+' PDF PAGE'+(pageCount===1?'':'S'):''}`:'0 FILES';

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark light">
   <meta name="description" content="Explore Marian apparitions around the world with satellite mapping and an interactive PDF viewer.">
-  <title>Explore Marian Apparitions Around the World | Sky Surfer</title>
+  <title>Explore Marian Apparitions Around the World!</title>
   <link rel="stylesheet" href="styles.css">
   <script>
     // Restore the user's preferred appearance before the page becomes visible.
@@ -18,11 +18,10 @@
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="https://www.sky-surfer.com/" target="_blank" rel="noopener" aria-label="Sky Surfer website">
-        <span class="brand-icon" aria-hidden="true">✦</span>
-        <span class="brand-titles"><b>SKY SURFER</b><small>MARIAN APPARITIONS</small></span>
+      <a class="brand brand-page-link" href="https://www.sky-surfer.com/marian-apparitions" target="_blank" rel="noopener noreferrer" aria-label="Visit the Marian Apparitions page on Sky Surfer (opens a new tab)">
+        <span class="brand-page-label">MARIAN APPARITIONS</span>
       </a>
-      <div class="topbar-center">MARIAN APPARITIONS <span class="topbar-dot">✧</span> STORIES OF FAITH</div>
+      <div class="topbar-center">STORIES OF FAITH</div>
       <div class="topbar-actions">
         <button type="button" id="openDirectory" class="directory-open-btn" aria-label="Browse Apparitions" aria-haspopup="dialog" aria-controls="apparitionsDirectory" aria-expanded="false" title="Browse apparitions by country">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
@@ -47,7 +46,7 @@
       <aside class="sidebar" aria-label="Location search and list">
         <div class="sidebar-heading">
           <div class="eyebrow"><span class="eyebrow-line"></span> DISCOVER THE APPARITIONS</div>
-          <h1><span class="headline-top-line"><span class="headline-intro">Explore</span> <em class="headline-subject">Marian Apparitions</em></span> <em class="headline-end">Around the World</em></h1>
+          <h1><span class="headline-top-line"><span class="headline-intro">Explore</span> <em class="headline-subject">Marian Apparitions</em></span> <em class="headline-end">Around the World!</em></h1>
           <p>Explore Marian apparitions across continents. Search by apparition, year, city, country, or document, then view the accompanying PDFs.</p>
         </div>
         <label class="search-box">
@@ -84,7 +83,7 @@
           <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
         </div>
         <canvas id="stars" aria-hidden="true"></canvas>
-        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.41</div>
+        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.42</div>
         <div class="view-switch" aria-label="Map view mode">
           <button class="view-tab" id="googleViewBtn" type="button" aria-pressed="false">Live Google Map</button>
           <div class="view-switch-middle">
@@ -127,7 +126,6 @@
         <h2 id="placeTitle">Selected place</h2>
         <div class="location-coords" id="placeLocation"></div>
         <div class="location-coords location-coordinate-line" id="placeCoords"></div>
-        <a id="streetViewLink" class="street-view-link" href="https://www.google.com/maps/" target="_blank" rel="noopener noreferrer" aria-label="Try the Street View near this apparition (opens Google Maps in a new tab)"><span aria-hidden="true">◉</span> Try the Street View <span aria-hidden="true">↗</span></a>
         <div class="thin-divider"></div>
         <div class="media-section-label"><span>IMAGE & PDF VIEWER</span><span id="mediaCounter">—</span></div>
 
@@ -156,11 +154,16 @@
             <iframe id="mediaFallback" title="PDF document" loading="lazy" hidden></iframe>
           </div>
           <div class="viewer-footer">
-            <span>DRAG ANY DIRECTION TO PAN <span class="help-sep">•</span> WHEEL TO ZOOM <span class="help-sep">•</span> SHIFT+WHEEL SIDEWAYS <span class="help-sep">•</span> PHONE: DRAG / PINCH</span>
+            <span class="viewer-instructions">
+              <span class="viewer-help-desktop">Drag to pan <span aria-hidden="true">·</span> Wheel to zoom <span aria-hidden="true">·</span> Shift + wheel to pan sideways</span>
+              <span class="viewer-help-phone">Drag to pan <span aria-hidden="true">·</span> Pinch to zoom</span>
+            </span>
             <a id="openOriginal" href="#" download aria-label="Download the selected document">DOWNLOAD PDF</a>
           </div>
         </div>
-
+        <div class="street-view-footer">
+          <a id="streetViewLink" class="street-view-link" href="https://www.google.com/maps/" target="_blank" rel="noopener noreferrer" aria-label="Street View near this apparition (opens Google Maps in a new tab)"><span aria-hidden="true">◉</span> Street View <span aria-hidden="true">↗</span></a>
+        </div>
       </aside>
     </main>
     <!-- The document viewer is moved into this overlay (not recreated) so that it
