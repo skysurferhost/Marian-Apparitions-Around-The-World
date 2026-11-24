@@ -1,3 +1,13 @@
+## v1.47 — Restore v1.36-style satellite map boundaries
+
+Removed only the extra gold country-border overlays introduced in v1.44. Satellite map boundaries now match v1.36; all v1.46 UI, markers, PDFs, and other functionality remain unchanged.
+
+## v1.46 — satellite map border-style hotfix
+
+- Corrected the MapLibre paint `line-width` expression introduced in v1.44. The wider border halo now uses its **own top-level `interpolate` zoom expression**, instead of nesting a zoom expression inside a `+` operation (which MapLibre rejects and prevents the entire satellite map from loading).
+- Kept the international border colors/widths at the same zoom stops, for both the Marian Apparitions Map and 3D globe satellite styles.
+- Preserved the v1.44 desktop heading, phone fullscreen/regular layout, Search Apparitions label, Marian markers, PDFs, and original map modes.
+
 ## Version 1.44 — fullscreen continuity and clearer geography
 
 - In phone portrait and landscape, **full screen keeps the same search/list/map layout as regular viewing**; the previous fullscreen-only `display:none` for the sidebar is overridden. Phone marker/PDF drawer remains left-sliding.
@@ -126,3 +136,10 @@ A planned later enhancement is a local Marian Apparitions Manager for editing ye
 - Restored **Try the Street View**, opening Google Maps Street View near the selected apparition coordinates in a new tab (availability depends on Google coverage).
 - Removed mouse-only “drag / scroll” instructions from phone and embedded phone maps; desktop help remains unchanged.
 - Kept the three existing views, locally bundled PDFs, full-screen PDF overlay, desktop right-side panel, and existing phone auto-zoom behavior.
+
+
+## v1.46 — Header label restoration
+- Restore **MARIAN APPARITIONS** immediately after the linked gold diamond on wide desktop screens.
+- Keep the centered **MARIAN APPARITIONS ✧ STORIES OF FAITH** desktop heading; no duplicate Sky Surfer wordmark.
+- Preserve the label on narrow phone fullscreen layouts with tighter spacing.
+- Retain all v1.45 map border styling fixes, views, mobile drawer and PDF functionality.

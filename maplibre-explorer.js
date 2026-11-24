@@ -134,35 +134,6 @@
   // The standalone satellite imagery is never dependent on street-map vector tiles.
   // When the OpenFreeMap style is obtainable, add ONLY its text labels on top.
   // If it isn't, continue with the satellite raster and the local Sky Surfer placemarks.
-  // v1.44: A restrained gold-and-ink outline for *international* land borders.
-  // Uses the existing OpenFreeMap/OpenMapTiles boundary source when it loads;
-  // no separate basemap, API key, imagery attribution changes or additional calls.
-  // Keep street-map styling as supplied by its provider.
-  function appendSatelliteCountryBorders(style, vectorStyle, visibilityModes=null){
-    const borderLayer=(vectorStyle.layers||[]).find(layer=>
-      layer.type==='line' && layer.source && layer['source-layer']==='boundary');
-    if(!borderLayer || !style.sources[borderLayer.source])return;
-    const borderFilter=['all',
-      ['==',['to-number',['get','admin_level'],0],2],
-      ['!=',['to-number',['get','maritime'],0],1]];
-    const width=['interpolate',['linear'],['zoom'],1,0.8,4,1.15,8,1.5,12,1.85];
-    const halo={id:'sky-sat-country-border-halo',type:'line',source:borderLayer.source,
-      'source-layer':'boundary',filter:borderFilter,
-      layout:{visibility:'visible','line-cap':'round','line-join':'round'},
-      paint:{'line-color':'#091c25','line-width':['+',width,1.65],
-        'line-opacity':0.75}};
-    const highlight={id:'sky-sat-country-border-highlight',type:'line',source:borderLayer.source,
-      'source-layer':'boundary',filter:borderFilter,
-      layout:{visibility:'visible','line-cap':'round','line-join':'round'},
-      paint:{'line-color':'#efce94','line-width':width,'line-opacity':0.78}};
-    // Insert before place labels so international borders never cover text.
-    const firstLabel=style.layers.findIndex(layer=>layer.type==='symbol');
-    style.layers.splice(firstLabel<0?style.layers.length:firstLabel,0,halo,highlight);
-    if(visibilityModes){
-      visibilityModes.set(halo.id,{satellite:'visible',street:'none'});
-      visibilityModes.set(highlight.id,{satellite:'visible',street:'none'});
-    }
-  }
   function getSatelliteStyle(){
     if(satelliteStylePromise)return satelliteStylePromise;
     satelliteStylePromise=(async()=>{
@@ -175,16 +146,12 @@
         const other=await result.json();
         const labels=(other.layers||[]).filter(layer=>
           layer.type==='symbol'&&layer.source&&layer.layout?.['text-field']!==undefined);
-        const borderLayer=(other.layers||[]).find(layer=>
-          layer.type==='line'&&layer.source&&layer['source-layer']==='boundary');
         const sourceNames=new Set(labels.map(layer=>layer.source));
-        if(borderLayer)sourceNames.add(borderLayer.source);
         for(const [id,source] of Object.entries(other.sources||{})){
           if(sourceNames.has(id)&&id!=='satellite')base.sources[id]=source;
         }
         if(other.glyphs)base.glyphs=other.glyphs;
         if(other.sprite)base.sprite=other.sprite;
-        appendSatelliteCountryBorders(base,other);
         for(const layer of labels){
           const label={...layer, paint:{...(layer.paint||{})}};
           // Preserve text styling where possible, but add contrast on imagery.
@@ -251,7 +218,6 @@
         backgrounds.forEach(appendStreetLayer);
         base.layers.push(satelliteRaster);
         otherLayers.forEach(appendStreetLayer);
-        appendSatelliteCountryBorders(base,streetStyle,layerVisibilityByMode);
         streetStyleAvailable=true;
         $('streetsBasemapBtn').disabled=false;
         $('streetsBasemapBtn').title='OpenFreeMap Street Map; 3D buildings appear at close zoom';
@@ -645,7 +611,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.44`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.47`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
