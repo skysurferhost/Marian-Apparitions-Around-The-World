@@ -135,7 +135,7 @@
       const index=document.createElement('span');index.className='place-number';index.textContent=String(locations.indexOf(p)+1).padStart(2,'0');
       const info=document.createElement('span');info.className='place-info';
       const name=document.createElement('span');name.className='place-name';name.textContent=p.displayName || p.name;
-      const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition') + ' · ' + ((p.media||[]).length?`${p.media.length} media`:'No media');
+      const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition');
       const chev=document.createElement('span');chev.className='place-chevron';chev.textContent='›';
       info.append(name,sub);btn.append(index,info,chev);btn.addEventListener('click',()=>selectLocation(p,true));container.append(btn);
     }

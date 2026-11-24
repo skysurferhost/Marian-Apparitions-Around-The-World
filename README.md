@@ -1,3 +1,11 @@
+## Version 1.44 — fullscreen continuity and clearer geography
+
+- In phone portrait and landscape, **full screen keeps the same search/list/map layout as regular viewing**; the previous fullscreen-only `display:none` for the sidebar is overridden. Phone marker/PDF drawer remains left-sliding.
+- Restore centered desktop heading **MARIAN APPARITIONS ✧ STORIES OF FAITH** while keeping the top-left linked gold diamond.
+- Rename the searchable directory control **Search Apparitions**.
+- Remove per-apparition "1 media / 2 media" labels from the location list (PDF data and media counts within the PDF viewer remain unchanged).
+- Slightly strengthen international land borders in the MapLibre satellite Explorer and satellite globe using existing OpenFreeMap vector-tile data, when available. Third-party Google My Maps is not restyled.
+
 ## v1.43 — Phone tap-to-dismiss and directory discoverability
 
 - Restored the gold diamond icon inside the upper-left site link (Marian Apparitions URL unchanged).
