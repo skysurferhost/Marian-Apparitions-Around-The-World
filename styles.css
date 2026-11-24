@@ -431,6 +431,8 @@
 .directory-search input::placeholder{color:#a5bbc1}
 .directory-results{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px 28px 24px;scrollbar-width:thin;scrollbar-color:#46606a transparent}
 .directory-country{margin-top:16px}
+/* v1.48 — Add 22px of breathing room between consecutive country groups only. */
+.directory-country + .directory-country{margin-top:38px}
 .directory-country-name{margin:0 0 8px;display:flex;align-items:center;gap:13px;padding:0 0 12px;border-bottom:1px solid rgba(183,212,211,.18);font:normal 23px/1.25 Georgia,"Times New Roman",serif;color:#f3e7d7}
 .directory-flag{font-size:27px;line-height:1;display:inline-flex;align-items:center;justify-content:center;min-width:33px}
 .directory-place{display:flex;width:100%;align-items:center;text-align:left;justify-content:space-between;gap:10px;border:1px solid transparent;border-radius:7px;background:transparent;color:#f3f5f3;padding:13px 12px;margin:2px 0;transition:background .15s,border-color .15s}

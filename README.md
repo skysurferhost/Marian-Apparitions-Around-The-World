@@ -1,3 +1,7 @@
+## v1.48 — Balanced directory country spacing
+
+Added 22px of extra vertical separation between consecutive country groups in the Marian Apparitions Directory. Country headings, flags, listing appearance, map, viewer, and all other functionality are unchanged from v1.47.
+
 ## v1.47 — Restore v1.36-style satellite map boundaries
 
 Removed only the extra gold country-border overlays introduced in v1.44. Satellite map boundaries now match v1.36; all v1.46 UI, markers, PDFs, and other functionality remain unchanged.

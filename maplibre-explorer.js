@@ -611,7 +611,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.47`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.48`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
