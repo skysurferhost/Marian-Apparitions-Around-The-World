@@ -1,3 +1,9 @@
+## v1.49 — Phone world view and chronological browsing
+
+- On phones only, the Marian Apparitions Map initially opens at MapLibre's minimum supported zoom (`0`) and its reset button returns to that same wide view. Desktop camera settings are unchanged. Marker selection still flies to the selected location.
+- Within Search Apparitions, choose **By Country** (original A–Z grouped directory) or **Timeline** (oldest-to-newest apparition years). The timeline uses only the years supplied in the apparition data, and undated records are placed last.
+- Existing country-group separation from v1.48 (+22px) is preserved, as are all three map views, the PDF viewer, markers, and mobile drawer.
+
 ## v1.48 — Balanced directory country spacing
 
 Added 22px of extra vertical separation between consecutive country groups in the Marian Apparitions Directory. Country headings, flags, listing appearance, map, viewer, and all other functionality are unchanged from v1.47.

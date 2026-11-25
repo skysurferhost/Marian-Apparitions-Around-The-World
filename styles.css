@@ -1203,3 +1203,21 @@ body.phone-drawer-page {overflow:auto;}
   .topbar .brand-page-link{gap:5px;}
   .topbar .brand-page-link .brand-page-label{font-size:9px;letter-spacing:.1px;}
 }
+
+/* v1.49 — compact directory browsing choices; the v1.48 country spacing remains unchanged. */
+.directory-browse{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:8px 28px 1px;padding:4px;background:rgba(5,23,33,.68);border:1px solid rgba(210,188,148,.22);border-radius:9px;flex-shrink:0}
+.directory-browse-btn{min-height:36px;border:1px solid transparent;border-radius:6px;background:transparent;color:#a9bfc4;font-size:12px;font-weight:650;letter-spacing:.25px;cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+.directory-browse-btn:hover,.directory-browse-btn:focus-visible{color:#f3d3a0;border-color:rgba(226,188,121,.32)}
+.directory-browse-btn.is-active{background:#284450;border-color:rgba(235,194,122,.55);color:#f5d8a5;box-shadow:0 2px 8px #0003}
+.directory-year{margin-top:15px;padding-left:19px;border-left:1px solid rgba(214,174,109,.42);position:relative}
+.directory-year+.directory-year{margin-top:21px}
+.directory-year-name{font:normal 25px/1.25 Georgia,"Times New Roman",serif;letter-spacing:.25px;color:#ebc58b;padding:0 0 8px;margin:0 0 5px}
+.directory-year-name::before{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:#dbb678;box-shadow:0 0 0 4px #1a3039;top:11px;left:-5px}
+:root[data-theme="day"] .directory-browse{background:#edf0ed;border-color:#d2d8d4}
+:root[data-theme="day"] .directory-browse-btn{color:#5a7075}
+:root[data-theme="day"] .directory-browse-btn:hover{color:#6d522a}
+:root[data-theme="day"] .directory-browse-btn.is-active{background:#fff7e8;color:#654e27;border-color:#c8ac7b;box-shadow:0 1px 5px #0001}
+:root[data-theme="day"] .directory-year{border-color:#d2b581}
+:root[data-theme="day"] .directory-year-name{color:#87642f}
+:root[data-theme="day"] .directory-year-name::before{box-shadow:0 0 0 4px #fcfcf8}
+@media(max-width:520px){.directory-browse{margin:6px 16px 2px}.directory-browse-btn{min-height:35px;font-size:11px}.directory-year-name{font-size:22px}}

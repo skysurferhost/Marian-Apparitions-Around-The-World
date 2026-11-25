@@ -47,6 +47,10 @@
   let globeFailed = false;
   const GLOBE_START = { center: [-25, 25], zoom: 1.35, bearing: 0, pitch: 0 };
   const EXPLORER_START = { center: [-40, 30], zoom: 2.35, bearing: 0, pitch: 0 };
+  // v1.49: on actual phones, open/reset the flat Marian map at the most
+  // zoomed-out supported level. Desktop retains its existing camera.
+  const PHONE_EXPLORER_START = {center:[-40, 20],zoom:0,bearing:0,pitch:0};
+  function explorerStart(){return isPhoneDrawer()?PHONE_EXPLORER_START:EXPLORER_START;}
   function compactCredits(targetMap) {
     // Attribution is legally required; start it behind the normal MapLibre 'i' button.
     const control = new maplibregl.AttributionControl({compact:true});
@@ -518,7 +522,7 @@
       if(viewMode!=='satellite'){pendingInit=false;return;}
       map=new maplibregl.Map({
         container:'mapLibreCanvas',style,
-        ...EXPLORER_START,minZoom:1.5,maxZoom:19,
+        ...explorerStart(),minZoom:isPhoneDrawer()?0:1.5,maxZoom:19,
         attributionControl:false,cooperativeGestures:false,
         renderWorldCopies:true,antialias:true,
         fadeDuration:430,refreshExpiredTiles:true
@@ -611,7 +615,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.48`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.49`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
@@ -660,7 +664,7 @@
         applyExplorerBasemap();
       }
       map?.stop();
-      map?.easeTo({...EXPLORER_START,duration:reducedMotion()?0:950,essential:true});
+      map?.easeTo({...explorerStart(),duration:reducedMotion()?0:950,essential:true});
     }else if(viewMode==='globe' && globeReady){
       satelliteGlobe?.stop();
       satelliteGlobe?.easeTo({...GLOBE_START,duration:reducedMotion()?0:850,essential:true});

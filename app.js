@@ -166,32 +166,81 @@
     } else {holder.textContent='🌐';}
     return holder;
   }
+  let directoryBrowseMode='country';
+  // Use verified location year values only. Unknown years are grouped last,
+  // not guessed from media files or descriptions.
+  function chronologicalYear(place){
+    const numeric=Number(place.year);
+    return Number.isInteger(numeric)&&numeric>0?numeric:null;
+  }
+  function directoryItem(place, chronological=false){
+    const item=document.createElement('button');item.type='button';item.className='directory-place';
+    item.setAttribute('aria-label',`Show ${place.displayName||place.name} on the map and open details`);
+    const info=document.createElement('span');info.className='directory-place-info';
+    const title=document.createElement('span');title.className='directory-place-name';
+    title.textContent=place.displayName||`${place.name}${place.year?' – '+place.year:''}`;
+    const location=document.createElement('span');location.className='directory-place-sub';
+    location.textContent=[place.geo?.city,place.geo?.state,place.geo?.country].filter(Boolean).join(', ')||place.region||'';
+    const arrow=document.createElement('span');arrow.className='directory-place-arrow';arrow.textContent='›';
+    info.append(title,location);item.append(info,arrow);
+    item.addEventListener('click',()=>{closeDirectory();selectLocation(place,true);});
+    return item;
+  }
+  function setDirectoryMode(mode){
+    if(mode!=='country' && mode!=='timeline')return;
+    directoryBrowseMode=mode;
+    for(const [id,value] of [['directoryByCountry','country'],['directoryByTimeline','timeline']]){
+      const btn=$(id),selected=mode===value;
+      btn.classList.toggle('is-active',selected);
+      btn.setAttribute('aria-pressed',String(selected));
+    }
+    $('directoryTitle').textContent=mode==='country'?'Marian Apparitions Directory':'Marian Apparitions Timeline';
+    $('directoryEyebrow').textContent=mode==='country'?'EXPLORE BY COUNTRY':'EXPLORE THROUGH TIME';
+    $('directoryIntro').textContent=mode==='country'
+      ?'Select an apparition to find its location and view the accompanying document.'
+      :'Explore apparitions from earliest to latest, then select one to view its location and document.';
+    $('directorySortLabel').textContent=mode==='country'?'Countries listed A–Z':'Earliest to latest';
+    renderDirectory();
+    $('directoryResults').scrollTop=0;
+  }
   function renderDirectory(){
     const term=plain($('directorySearch').value.trim());
     const matched=locations.filter(p=>!term||plain([p.name,p.displayName,p.year,p.description,p.geo?.city,p.geo?.state,p.geo?.country,p.geo?.continent,p.searchText,(p.media||[]).map(m=>m.label||m.src).join(' ')].join(' ')).includes(term));
-    const groups=new Map();
-    for(const p of matched){const country=p.geo?.country||'Other locations';if(!groups.has(country))groups.set(country,[]);groups.get(country).push(p);}
     const list=$('directoryResults');list.replaceChildren();
-    for(const country of [...groups.keys()].sort(countryCollator.compare)){
-      const section=document.createElement('section');section.className='directory-country';section.setAttribute('role','listitem');
-      const heading=document.createElement('h3');heading.className='directory-country-name';
-      const flag=makeCountryFlag(country);
-      const name=document.createElement('span');name.textContent=country;heading.append(flag,name);section.append(heading);
-      groups.get(country).sort((a,b)=>countryCollator.compare(a.name,b.name)||((a.year||0)-(b.year||0))).forEach(p=>{
-        const item=document.createElement('button');item.type='button';item.className='directory-place';
-        item.setAttribute('aria-label',`Show ${p.displayName||p.name} on the map and open details`);
-        const info=document.createElement('span');info.className='directory-place-info';
-        const title=document.createElement('span');title.className='directory-place-name';title.textContent=p.displayName||`${p.name}${p.year?' – '+p.year:''}`;
-        const location=document.createElement('span');location.className='directory-place-sub';location.textContent=[p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ')||p.region||'';
-        const arrow=document.createElement('span');arrow.className='directory-place-arrow';arrow.textContent='›';
-        info.append(title,location);item.append(info,arrow);
-        item.addEventListener('click',()=>{closeDirectory();selectLocation(p,true);});
-        section.append(item);
-      });list.append(section);
+    if(directoryBrowseMode==='country'){
+      const groups=new Map();
+      for(const p of matched){const country=p.geo?.country||'Other locations';if(!groups.has(country))groups.set(country,[]);groups.get(country).push(p);}
+      for(const country of [...groups.keys()].sort(countryCollator.compare)){
+        const section=document.createElement('section');section.className='directory-country';section.setAttribute('role','listitem');
+        const heading=document.createElement('h3');heading.className='directory-country-name';
+        const flag=makeCountryFlag(country);
+        const name=document.createElement('span');name.textContent=country;heading.append(flag,name);section.append(heading);
+        groups.get(country).sort((a,b)=>countryCollator.compare(a.name,b.name)||((a.year||0)-(b.year||0))).forEach(p=>section.append(directoryItem(p)));
+        list.append(section);
+      }
+      $('directoryCount').textContent=`${matched.length} apparition${matched.length===1?'':'s'} · ${groups.size} countr${groups.size===1?'y':'ies'}`;
+    }else{
+      const sorted=[...matched].sort((a,b)=>{
+        const yearA=chronologicalYear(a),yearB=chronologicalYear(b);
+        return (yearA??Number.MAX_SAFE_INTEGER)-(yearB??Number.MAX_SAFE_INTEGER)||countryCollator.compare(a.name,b.name);
+      });
+      const groups=new Map();
+      for(const p of sorted){const year=chronologicalYear(p);const key=year??'Undated';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p);}
+      for(const [year,places] of groups){
+        const section=document.createElement('section');section.className='directory-year';section.setAttribute('role','listitem');
+        const heading=document.createElement('h3');heading.className='directory-year-name';
+        heading.textContent=year==='Undated'?'Date not specified':String(year);
+        section.append(heading);
+        for(const place of places)section.append(directoryItem(place,true));
+        list.append(section);
+      }
+      const dated=sorted.filter(p=>chronologicalYear(p)!==null).length;
+      $('directoryCount').textContent=`${matched.length} apparition${matched.length===1?'':'s'} · ${dated} dated`;
     }
-    if(!groups.size){const empty=document.createElement('p');empty.className='directory-empty';empty.textContent='No apparitions found. Try another place, year, or name.';list.append(empty);}
-    $('directoryCount').textContent=`${matched.length} apparition${matched.length===1?'':'s'} · ${groups.size} countr${groups.size===1?'y':'ies'}`;
+    if(!matched.length){const empty=document.createElement('p');empty.className='directory-empty';empty.textContent='No apparitions found. Try another place, year, or name.';list.append(empty);}
   }
+  $('directoryByCountry').addEventListener('click',()=>setDirectoryMode('country'));
+  $('directoryByTimeline').addEventListener('click',()=>setDirectoryMode('timeline'));
   function openDirectory(){directory.hidden=false;document.body.classList.add('directory-open');$('openDirectory').setAttribute('aria-expanded','true');$('directorySearch').value='';renderDirectory();$('directorySearch').focus();}
   function closeDirectory(){directory.hidden=true;document.body.classList.remove('directory-open');$('openDirectory').setAttribute('aria-expanded','false');$('openDirectory').focus();}
   $('openDirectory').addEventListener('click',openDirectory);
