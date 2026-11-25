@@ -7,7 +7,7 @@
   const clamp = (v,min,max)=>Math.min(max,Math.max(min,v));
   const rad = Math.PI/180;
   const PI = Math.PI;
-  const state = {yaw:-98*rad,pitch:39*rad,zoom:1.0,filter:'all',search:'',selected:null,fly:null,globeDragging:false,pointer:null,justDragged:false,mediaIndex:0,mediaZoom:1,mediaPanX:0,mediaPanY:0,stageDragging:false,stagePointer:null,pinching:false,pinchStart:0,pinchZoom:1};
+  const state = {yaw:-98*rad,pitch:39*rad,zoom:1.0,search:'',selected:null,fly:null,globeDragging:false,pointer:null,justDragged:false,mediaIndex:0,mediaZoom:1,mediaPanX:0,mediaPanY:0,stageDragging:false,stagePointer:null,pinching:false,pinchStart:0,pinchZoom:1};
   const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let globeGL=null,globeProgram=null,globeData=null,globeW=0,globeH=0,globeRadius=0,globeCenterX=0,globeCenterY=0,sceneDirty=true;
   // WebGL is optional: draw an actual textured, orthographic Earth on a 2D
@@ -121,18 +121,25 @@
   document.addEventListener('fullscreenchange', updateSiteFullscreenButton);
   document.addEventListener('webkitfullscreenchange', updateSiteFullscreenButton);
 
-  const allCount=locations.length, docCount=locations.filter(p=>p.media&&p.media.length).length;
-  $('allCount').textContent=allCount; $('docCount').textContent=docCount;
   const fmt = (v,pos,neg)=>`${Math.abs(v).toFixed(3)}° ${v>=0?pos:neg}`;
   const labelCoords = p=>`${fmt(p.lat,'N','S')}  ·  ${fmt(p.lng,'E','W')}`;
-  function filtered() { const s=state.search.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); return locations.filter(p=>(state.filter==='all'||(p.media||[]).length>0)&&(!s||(p.searchText||`${p.name} ${p.description||''}`).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(s))); }
+  // Country/Timeline choices control the listing order; they never hide map markers.
+  // The search still filters both browse modes against the same apparition records.
+  function filtered() {
+    const query=state.search.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const visible=locations.filter(p=>!query||(p.searchText||`${p.name} ${p.description||''}`).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(query));
+    if(directoryBrowseMode==='timeline'){
+      return visible.sort((a,b)=>(chronologicalYear(a)??Number.MAX_SAFE_INTEGER)-(chronologicalYear(b)??Number.MAX_SAFE_INTEGER)||countryCollator.compare(a.name,b.name));
+    }
+    return visible.sort((a,b)=>countryCollator.compare(a.geo?.country||'',b.geo?.country||'')||countryCollator.compare(a.name,b.name));
+  }
   function buildPlaces() {
     const container=$('placeList');container.replaceChildren();
     const selected=filtered(); $('visibleCount').textContent=String(selected.length).padStart(2,'0')+' APPARITIONS';
     if(!selected.length){const empty=document.createElement('div');empty.className='list-empty';empty.textContent='No apparitions match. Try another search.';container.append(empty);}
-    for(const p of selected){
+    for(const [i,p] of selected.entries()){
       const btn=document.createElement('button');btn.type='button';btn.className='place-item'+(p.id===state.selected?.id?' active':'');
-      const index=document.createElement('span');index.className='place-number';index.textContent=String(locations.indexOf(p)+1).padStart(2,'0');
+      const index=document.createElement('span');index.className='place-number';index.textContent=String(i+1).padStart(2,'0');
       const info=document.createElement('span');info.className='place-info';
       const name=document.createElement('span');name.className='place-name';name.textContent=p.displayName || p.name;
       const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition');
@@ -189,11 +196,16 @@
   function setDirectoryMode(mode){
     if(mode!=='country' && mode!=='timeline')return;
     directoryBrowseMode=mode;
-    for(const [id,value] of [['directoryByCountry','country'],['directoryByTimeline','timeline']]){
+    for(const [id,value] of [
+      ['directoryByCountry','country'],['directoryByTimeline','timeline'],
+      ['showAll','country'],['showDocs','timeline']
+    ]){
       const btn=$(id),selected=mode===value;
       btn.classList.toggle('is-active',selected);
+      btn.classList.toggle('active',selected); // Existing sidebar active styling.
       btn.setAttribute('aria-pressed',String(selected));
     }
+    buildPlaces();
     $('directoryTitle').textContent=mode==='country'?'Marian Apparitions Directory':'Marian Apparitions Timeline';
     $('directoryEyebrow').textContent=mode==='country'?'EXPLORE BY COUNTRY':'EXPLORE THROUGH TIME';
     $('directoryIntro').textContent=mode==='country'
@@ -274,9 +286,9 @@
     if(e.target instanceof HTMLInputElement)return;
     if(state.selected && (e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();changeMedia(e.key==='ArrowRight'?1:-1);}
   });
-  function setFilter(filter){state.filter=filter;for(const [name,id] of [['all','showAll'],['docs','showDocs']]){$(id).classList.toggle('active',filter===name);$(id).setAttribute('aria-pressed',String(filter===name));}buildPlaces();}
-  $('showAll').addEventListener('click',()=>setFilter('all'));
-  $('showDocs').addEventListener('click',()=>setFilter('docs'));
+  // The sidebar and the popup directory share exactly one browse mode.
+  $('showAll').addEventListener('click',()=>setDirectoryMode('country'));
+  $('showDocs').addEventListener('click',()=>setDirectoryMode('timeline'));
   function smooth(a,b,t){return a+(b-a)*t;}
   function shortestAngle(from,to){return from+Math.atan2(Math.sin(to-from),Math.cos(to-from));}
   function flyTo(p){

@@ -1,3 +1,10 @@
+## v1.50 — Unified Country / Timeline controls
+
+- Replaced the **All apparitions / With media** sidebar filters with synchronized **Country / Timeline** browse choices. The sidebar now lists all matching apparitions in country A–Z order or earliest-to-latest year order (undated records last), while preserving search and marker selection.
+- Changed the popup directory label from **By Country** to **Country** and added clear globe/calendar icons to both pairs of equal-width buttons. Desktop and phone use the same gold-and-navy styling with generous touch targets.
+- Added versioned stylesheet and app-script URLs (`?v=1.50`) so mobile browsers do not reuse incompatible cached v1.48/v1.49 assets after GitHub Pages updates.
+- Original view modes, source data, 22px country group spacing, documents, and mobile PDF drawer unchanged.
+
 ## v1.49 — Phone world view and chronological browsing
 
 - On phones only, the Marian Apparitions Map initially opens at MapLibre's minimum supported zoom (`0`) and its reset button returns to that same wide view. Desktop camera settings are unchanged. Marker selection still flies to the selected location.
