@@ -1,3 +1,10 @@
+## v1.51 — Marian header emblem
+
+- Replaced only the small top-left four-point diamond with the user-selected depiction of Our Lady wearing a crown and standing over a partial globe, surrounded by 12 stars. The emblem has been cropped and optimized as a transparent PNG for the circular desktop/phone header icon.
+- Kept **MARIAN APPARITIONS** beside the icon and the same link to `https://www.sky-surfer.com/marian-apparitions`.
+- Kept all maps, search controls, timelines, viewer/PDFs, existing markers, and other interactions unchanged from v1.50.
+- Cache-busted the header image and stylesheet to prevent older branding persisting after publication.
+
 ## v1.50 — Unified Country / Timeline controls
 
 - Replaced the **All apparitions / With media** sidebar filters with synchronized **Country / Timeline** browse choices. The sidebar now lists all matching apparitions in country A–Z order or earliest-to-latest year order (undated records last), while preserving search and marker selection.

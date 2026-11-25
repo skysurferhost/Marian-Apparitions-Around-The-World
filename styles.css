@@ -1263,3 +1263,30 @@ body.phone-drawer-page {overflow:auto;}
   .sidebar-tabs > .browse-choice{gap:5px;font-size:11px;}
   .browse-icon{width:14px;height:14px;min-width:14px;}
 }
+
+/* v1.51 — The selected Marian medallion replaces only the upper-left diamond icon.
+   Preserve header link, wording, and responsive layout on every screen size. */
+.topbar .brand-page-link img.marian-header-emblem {
+  display:block;
+  flex:0 0 auto;
+  width:38px;
+  height:38px;
+  object-fit:contain;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  padding:0;
+  box-shadow:none;
+}
+.topbar .brand-page-link:hover img.marian-header-emblem,
+.topbar .brand-page-link:focus-visible img.marian-header-emblem,
+:root[data-theme="day"] .topbar .brand-page-link img.marian-header-emblem {
+  border:0;
+  background:transparent;
+}
+@media (max-width:520px) {
+  .topbar .brand-page-link img.marian-header-emblem {
+    width:32px;
+    height:32px;
+  }
+}
