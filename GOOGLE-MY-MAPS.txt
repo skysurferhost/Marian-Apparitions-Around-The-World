@@ -1,7 +1,9 @@
 Marian Apparitions Google My Maps:
 https://www.google.com/maps/d/u/1/edit?mid=15WqbuRlgPoyjzpR8lw7uUsQUrV_0EW0&usp=sharing
 
-The linked map updates in the Live Google Map iframe when shared publicly.
+The Google My Maps KML file remains available as a location-data source.
+The separate Live Google Map iframe tab was retired in v1.52; the custom
+Marian Apparitions Map and 3D Globe remain available.
 The custom Explorer uses google-my-maps.kml; for exact markers export the entire map to KML with the network-link option UNCHECKED.
 v1.27 uses the exact three coordinates in the user-provided Marian Apparitions Map.kml, copied to google-my-maps.kml.
 

@@ -84,11 +84,11 @@
   function showFailure(message,type='map'){
     mapFailed=true;lastError=String(message);lastErrorType=type;
     console.error('Sky Surfer Explorer:',type,lastError,browserReport());
-    showNotice('Explorer could not load satellite imagery: '+lastError+'. Live Google Map remains available.');
+    showNotice('Satellite map unavailable: '+lastError+'. Try the 3D Globe, or check your connection and refresh.');
     diagDetails.textContent=browserReport()+' · Error: '+lastError;diag.hidden=false;
   }
   function clearFailure(){diag.hidden=true;mapFailed=false;lastError='';lastErrorType='';}
-  $('mapUseGoogle').addEventListener('click',()=>setMode('google'));
+  $('mapUseGlobe').addEventListener('click',()=>setMode('globe'));
   $('mapCopyDiagnostic').addEventListener('click',()=>{
     const report=diagDetails.textContent;
     if(navigator.clipboard?.writeText&&window.isSecureContext){
@@ -556,7 +556,7 @@
         if(message===lastError)return;lastError=message;
         console.warn('Sky Surfer satellite map request:',message);
         if(!mapReady){
-          showNotice('A satellite map resource failed: '+message+' — Live Google Map remains available.');
+          showNotice('A satellite map resource failed: '+message+'. Try the 3D Globe or check your connection.');
           diagDetails.textContent=browserReport()+' · Resource error: '+message;diag.hidden=false;
         }
       });
@@ -589,20 +589,17 @@
   $('streetsBasemapBtn').addEventListener('click',()=>setBasemap('street'));
 
   function setMode(mode){
-    if(!['google','satellite','globe'].includes(mode))return;
+    if(!['satellite','globe'].includes(mode))return;
     viewMode=mode;
-    const isGoogle=mode==='google',isExplorer=mode==='satellite',isGlobe=mode==='globe';
+    const isExplorer=mode==='satellite',isGlobe=mode==='globe';
     document.body.dataset.viewMode=mode;
-    $('mapSection').classList.toggle('google-active',isGoogle);
     $('mapSection').classList.toggle('satellite-active',isExplorer);
     $('mapSection').classList.toggle('globe-active',isGlobe);
-    $('googleLiveMap').hidden=!isGoogle;
-    $('googleGuide').hidden=!isGoogle;
     root.hidden=!isExplorer;
 
     styleSwitch.hidden=!(isExplorer && explorerStyleExpanded);
     $('satelliteViewBtn').setAttribute('aria-expanded',String(isExplorer && explorerStyleExpanded));
-    for(const [id,active] of [['googleViewBtn',isGoogle],['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe]]){
+    for(const [id,active] of [['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe]]){
       $(id).classList.toggle('active',active);
       $(id).setAttribute('aria-pressed',String(active));
     }
@@ -615,7 +612,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isGoogle?'LIVE GOOGLE MY MAPS':isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.50`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.52`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
@@ -634,7 +631,6 @@
       else initializeSatelliteGlobe();
     }
   }
-  $('googleViewBtn').addEventListener('click',()=>setMode('google'));
   $('satelliteViewBtn').addEventListener('click',()=>{
     if(viewMode==='satellite'){
       explorerStyleExpanded=!explorerStyleExpanded;
@@ -643,7 +639,6 @@
     }else{explorerStyleExpanded=true;setMode('satellite');}
   });
   $('globeViewBtn').addEventListener('click',()=>setMode('globe'));
-  $('refreshGoogle').addEventListener('click',()=>{const frame=$('googleMapFrame');frame.src=frame.src;});
   $('globeZoomIn').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomIn({duration:reducedMotion()?0:280});
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomIn({duration:reducedMotion()?0:300});

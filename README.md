@@ -1,3 +1,12 @@
+## v1.52 — Simplified search control and map tabs
+
+- Replaced the top-bar **Search Apparitions** list icon with a clear magnifying-glass icon, preserving its label and the directory interaction.
+- Added a subtle country flag immediately underneath each sidebar apparition number (01, 02, etc.) in Country and Timeline modes, using the bundled flag images.
+- Removed the redundant **Live Google Map** embedded view and tab. The two views are now **Marian Apparitions Map** (Satellite / Street Map) and **3D Globe**.
+- Map imagery failure guidance now offers the retained 3D Globe as an alternative rather than pointing to a removed tab.
+- Preserved the source Google My Maps KML file, Street View links, apparition data, map pins, PDF viewer, the new crowned-Mary header icon, and all Country/Timeline features from v1.51.
+- Cache-busted the CSS and JavaScript references so mobile browsers load the matching release assets.
+
 ## v1.51 — Marian header emblem
 
 - Replaced only the small top-left four-point diamond with the user-selected depiction of Our Lady wearing a crown and standing over a partial globe, surrounded by 12 stars. The emblem has been cropped and optimized as a transparent PNG for the circular desktop/phone header icon.
@@ -69,7 +78,7 @@ Removed only the extra gold country-border overlays introduced in v1.44. Satelli
 ## v1.41: phone usability + removal of experimental fourth view
 
 - **God’s Eye View is completely removed**: the experimental fourth tab, remote iframe, bridge, installer and launcher, alternate globe styles, and related documentation are no longer included.
-- **The three original views are preserved**: Live Google Map, Marian Apparitions Map (Satellite / Street Map), and 3D globe.
+- **Historical note (v1.39):** Three views were present at this stage. The Live Google Map tab was removed in v1.52; Marian Apparitions Map (Satellite / Street Map) and 3D Globe remain.
 - **Phone portrait and landscape only:** selecting a marker in the Sky Surfer map, or choosing an entry from the apparition list/directory, opens the existing information/PDF panel as a left-side drawer inside the map. It keeps part of the map visible and has an accessible close button.
 - **Phone fullscreen**: fullscreen is map-first, with the tall introduction hidden. The drawer opens from the left, including when the phone is rotated sideways. The PDF FULLSCREEN control still opens the existing in-page expanded viewer.
 - **Phone embedded view**: the same mobile drawer works inside a responsive iframe. The containing site's iframe must permit fullscreen for the fullscreen button to work. The iframe's own height is controlled by the containing page, not by this ZIP.
@@ -92,7 +101,7 @@ This is a clean testing version built from v1.25. It removes **all previous samp
 ## What is in this version
 
 - **Marian Apparitions Map** is the opening/default mode. It uses MapLibre and the existing EOxCloudless 2016 satellite layer (online), with optional OpenFreeMap **Street Map** and automatic 3D building shapes when zoomed in where data exists.
-- **Live Google Map** loads the new Google My Maps project you shared: `15WqbuRlgPoyjzpR8lw7uUsQUrV_0EW0`. It will display updated pins from Google if the map's sharing settings permit embedding, but Google-controlled map pins cannot trigger the separate Sky Surfer PDF panel. Use the left catalog or click Sky Surfer Explorer pins for the PDFs.
+- **Historical note (before v1.52):** Live Google Map used to load the Google My Maps project: `15WqbuRlgPoyjzpR8lw7uUsQUrV_0EW0`. It will display updated pins from Google if the map's sharing settings permit embedding, but Google-controlled map pins cannot trigger the separate Sky Surfer PDF panel. Use the left catalog or click Sky Surfer Explorer pins for the PDFs.
 - **3D globe** retains the MapLibre satellite atmosphere effect and offline fallback.
 - Search by location, country, city, historical year, or PDF name. Select a pin or catalog entry for a zoomable/pannable PDF viewer and a working **DOWNLOAD PDF** control.
 - Test PDFs: Fátima (2 pages), Guadalupe (1 page), Lourdes (1 page).
@@ -112,7 +121,7 @@ The three short historical descriptions are based on official Catholic shrine an
 
 1. Extract the ZIP into its own folder, including all subfolders.
 2. Double-click **`START_LOCAL_WINDOWS.bat`**. Python 3 is needed for the local server; it will open `http://localhost:8765/index.html`.
-3. The Marian Apparitions Map opens by default. Use **Live Google Map** to see the Google-managed locations separately, and **3D globe** for the globe.
+3. The Marian Apparitions Map opens by default. Choose **3D Globe** for an alternate Earth view; use **Satellite / Street Map** within the Marian Apparitions Map.
 4. Click an apparition from the list or its custom Explorer marker to open the PDF. Scroll the mouse to zoom at the pointer, drag to pan, and use pinch gestures on phones. **DOWNLOAD PDF** saves the original file.
 
 Most of the PDF and illustrated globe features can also work when `index.html` is double-clicked directly, but MapLibre and remote imagery are more dependable over `localhost`. Internet is required for online map tiles and the live Google iframe.

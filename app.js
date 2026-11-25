@@ -139,7 +139,19 @@
     if(!selected.length){const empty=document.createElement('div');empty.className='list-empty';empty.textContent='No apparitions match. Try another search.';container.append(empty);}
     for(const [i,p] of selected.entries()){
       const btn=document.createElement('button');btn.type='button';btn.className='place-item'+(p.id===state.selected?.id?' active':'');
-      const index=document.createElement('span');index.className='place-number';index.textContent=String(i+1).padStart(2,'0');
+      const index=document.createElement('span');index.className='place-index';
+      const number=document.createElement('span');number.className='place-number';number.textContent=String(i+1).padStart(2,'0');
+      index.append(number);
+      // Display the location's own flag below its ordinal, in both browse modes.
+      // Country codes and flag PNGs are already bundled for the directory.
+      const flagCode=countryFlagCode(p.geo?.country);
+      if(flagCode){
+        const flag=document.createElement('img');flag.className='place-flag';flag.src=`flags/${flagCode}.png`;
+        flag.alt='';flag.setAttribute('aria-hidden','true');flag.width=21;flag.height=14;
+        flag.loading='lazy';flag.decoding='async';
+        flag.addEventListener('error',()=>flag.remove(),{once:true});
+        index.append(flag);
+      }
       const info=document.createElement('span');info.className='place-info';
       const name=document.createElement('span');name.className='place-name';name.textContent=p.displayName || p.name;
       const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition');

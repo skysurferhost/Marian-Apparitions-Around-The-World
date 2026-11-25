@@ -4,7 +4,7 @@
 
 **Street Map / 3D buildings** uses OpenFreeMap's public service and OpenStreetMap-derived vector data. MapLibre is an open-source rendering library, not the imagery provider. Follow the terms of the tile service, acknowledge OpenFreeMap/OpenStreetMap contributors and observe any applicable data licenses.
 
-**Live Google Map** is Google's separate embedded Google My Maps iframe for the newly provided map ID. It follows Google's own embed/sharing rules. It does not grant the website access to Google Maps tiles for its custom Explorer.
+**Google My Maps KML** provides location data for the Sky Surfer map. The Live Google Map iframe tab was removed in v1.52; Google Street View links remain available from individual apparition details. Google data and imagery remain subject to their respective provider terms.
 
 **User-supplied PDFs** may contain copyrighted images and educational text. Confirm permission to publicly publish the PDFs or choose appropriately licensed materials. Their presence in the ZIP does not constitute a license.
 
