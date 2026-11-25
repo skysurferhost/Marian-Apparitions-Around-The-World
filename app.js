@@ -219,7 +219,6 @@
     }
     buildPlaces();
     $('directoryTitle').textContent=mode==='country'?'Marian Apparitions Directory':'Marian Apparitions Timeline';
-    $('directoryEyebrow').textContent=mode==='country'?'EXPLORE BY COUNTRY':'EXPLORE THROUGH TIME';
     $('directoryIntro').textContent=mode==='country'
       ?'Select an apparition to find its location and view the accompanying document.'
       :'Explore apparitions from earliest to latest, then select one to view its location and document.';

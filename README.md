@@ -1,3 +1,9 @@
+# v1.53 minor label refinements
+
+- The map tab now reads **3D Globe** (capital G).
+- Removed the eyebrow above the Marian Apparitions Directory title in both browsing modes.
+- All other v1.52 behaviors and assets are unchanged.
+
 ## v1.52 — Simplified search control and map tabs
 
 - Replaced the top-bar **Search Apparitions** list icon with a clear magnifying-glass icon, preserving its label and the directory interaction.
