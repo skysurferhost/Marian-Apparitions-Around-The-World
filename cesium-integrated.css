@@ -45,3 +45,10 @@
  #cesiumView .cesium-credit-logoContainer img,#cesiumView .cesium-widget-credits img{max-height:13px!important;max-width:78px!important;}
  #cesiumView .cesium-credit-expand-link{width:28px;height:28px;}
 }
+
+/* v1.73: Cesium-only geometry switch, never a camera command. */
+#cesiumBuildingsToggle[hidden], .globe-section:not(.cesium-active) #cesiumBuildingsToggle{display:none!important;}
+#cesiumBuildingsToggle[aria-pressed="true"]{background:rgba(222,184,119,.19);color:#f5d49a;}
+#cesiumBuildingsToggle[aria-pressed="false"]{color:#9ab0ba;}
+#cesiumBuildingsToggle:disabled{opacity:.4;cursor:default;}
+#cesiumBuildingsToggle svg{flex:none;pointer-events:none;}

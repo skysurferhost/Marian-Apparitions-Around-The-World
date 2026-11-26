@@ -14,7 +14,7 @@
       if (savedTheme === 'day' || savedTheme === 'night') document.documentElement.dataset.theme = savedTheme;
     } catch (_) { /* Private/local browsing may disallow storage. */ }
   </script>
-<link rel="stylesheet" href="cesium-integrated.css?v=1.72">
+<link rel="stylesheet" href="cesium-integrated.css?v=1.73">
 </head>
 <body>
   <div class="app-shell">
@@ -81,7 +81,7 @@
           <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
         </div>
         <canvas id="stars" aria-hidden="true"></canvas>
-        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.72 TEST</div>
+        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.73 TEST</div>
         <div class="view-switch" aria-label="Map view mode">
           <div class="view-switch-middle">
           <button class="view-tab active" id="satelliteViewBtn" type="button" aria-pressed="true" aria-controls="explorerStyleSwitch" aria-expanded="true">Marian Apparitions Map</button>
@@ -118,6 +118,7 @@
         <div class="globe-controls" aria-label="Map and globe controls">
           <button type="button" id="globeZoomIn" aria-label="Zoom globe in" title="Zoom in">+</button>
           <button type="button" id="globeZoomOut" aria-label="Zoom globe out" title="Zoom out">−</button>
+          <button type="button" id="cesiumBuildingsToggle" hidden aria-label="3D buildings" aria-pressed="true" title="Hide 3D buildings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 21 7.5v9L12 21.5 3 16.5v-9L12 2.5Z M3 7.5l9 5 9-5 M12 12.5v9"/></svg></button>
           <button type="button" id="resetGlobe" aria-label="Reset globe view" title="Reset globe view">↺</button>
         </div>
         <div class="bottom-coordinate" id="coordinates">40.00° N &nbsp; 95.00° W</div>
@@ -204,16 +205,16 @@
   <script src="site-data.js"></script>
   <script src="globe-texture.js"></script>
   <script src="download-manifest.js"></script>
-  <script src="app.js?v=1.72"></script>
+  <script src="app.js?v=1.73"></script>
   <script src="pdf-download.js"></script>
   
-  <script src="imagery-keys.js?v=1.72"></script>
-  <script src="cesium-labels.js?v=1.72"></script>
-  <script src="cesium-buildings.js?v=1.72"></script>
-  <script src="photomesh-config.js?v=1.72"></script>
-  <script src="cesium-photomesh.js?v=1.72"></script>
-  <script src="cesium-mobile-world.js?v=1.72"></script>
-  <script src="cesium-integrated.js?v=1.72"></script>
-  <script src="maplibre-explorer.js?v=1.72"></script>
+  <script src="imagery-keys.js?v=1.73"></script>
+  <script src="cesium-labels.js?v=1.73"></script>
+  <script src="cesium-buildings.js?v=1.73"></script>
+  <script src="photomesh-config.js?v=1.73"></script>
+  <script src="cesium-photomesh.js?v=1.73"></script>
+  <script src="cesium-mobile-world.js?v=1.73"></script>
+  <script src="cesium-integrated.js?v=1.73"></script>
+  <script src="maplibre-explorer.js?v=1.73"></script>
 </body>
 </html>
