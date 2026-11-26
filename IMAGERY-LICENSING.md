@@ -32,3 +32,7 @@ Only existing eligible regional imagery and explicitly licensed OAM imagery is s
 
 ## v1.72 attribution UI
 Credits are retained in Cesium’s native attribution lightbox when the license permits flexible placement; mandatory or uncertain provider credits stay visible. The smaller Cesium logo and information icon do not remove source acknowledgments. See https://osmfoundation.org/wiki/Attribution_Guidelines and https://creativecommons.org/licenses/by/4.0/. Confirm provider-specific on-screen requirements before public deployment.
+
+### v1.75 overview place names
+
+The bundled `cesium-world-names.js` contains derived interior label points and approximate areas from the Natural Earth 1:110m low-resolution country polygon dataset (177 records, including some territories); it is not a complete political gazetteer. Natural Earth raster and vector data are public domain: https://www.naturalearthdata.com/about/terms-of-use/. Ocean label positions are manually chosen. Native OpenFreeMap/OpenMapTiles/OpenStreetMap attribution remains in place for detailed labels.

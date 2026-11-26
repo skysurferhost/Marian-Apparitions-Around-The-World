@@ -14,7 +14,7 @@
       if (savedTheme === 'day' || savedTheme === 'night') document.documentElement.dataset.theme = savedTheme;
     } catch (_) { /* Private/local browsing may disallow storage. */ }
   </script>
-<link rel="stylesheet" href="cesium-integrated.css?v=1.73">
+<link rel="stylesheet" href="cesium-integrated.css?v=1.75">
 </head>
 <body>
   <div class="app-shell">
@@ -81,7 +81,7 @@
           <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
         </div>
         <canvas id="stars" aria-hidden="true"></canvas>
-        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.73 TEST</div>
+        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.75 TEST</div>
         <div class="view-switch" aria-label="Map view mode">
           <div class="view-switch-middle">
           <button class="view-tab active" id="satelliteViewBtn" type="button" aria-pressed="true" aria-controls="explorerStyleSwitch" aria-expanded="true">Marian Apparitions Map</button>
@@ -205,16 +205,17 @@
   <script src="site-data.js"></script>
   <script src="globe-texture.js"></script>
   <script src="download-manifest.js"></script>
-  <script src="app.js?v=1.73"></script>
+  <script src="app.js?v=1.75"></script>
   <script src="pdf-download.js"></script>
   
-  <script src="imagery-keys.js?v=1.73"></script>
-  <script src="cesium-labels.js?v=1.73"></script>
-  <script src="cesium-buildings.js?v=1.73"></script>
-  <script src="photomesh-config.js?v=1.73"></script>
-  <script src="cesium-photomesh.js?v=1.73"></script>
-  <script src="cesium-mobile-world.js?v=1.73"></script>
-  <script src="cesium-integrated.js?v=1.73"></script>
-  <script src="maplibre-explorer.js?v=1.73"></script>
+  <script src="imagery-keys.js?v=1.75"></script>
+  <script src="cesium-labels.js?v=1.75"></script>
+  <script src="cesium-buildings.js?v=1.75"></script>
+  <script src="photomesh-config.js?v=1.75"></script>
+  <script src="cesium-photomesh.js?v=1.75"></script>
+  <script src="cesium-world-names.js?v=1.75"></script>
+  <script src="cesium-mobile-world.js?v=1.75"></script>
+  <script src="cesium-integrated.js?v=1.75"></script>
+  <script src="maplibre-explorer.js?v=1.75"></script>
 </body>
 </html>

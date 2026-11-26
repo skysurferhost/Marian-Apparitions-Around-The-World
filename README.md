@@ -1,3 +1,10 @@
+## v1.74 test — mobile photorealistic streaming
+
+- Phone photomesh activation altitude 26 km (was 20 km), retained up to 32 km (was 25 km). The root request can start after 80 ms of eligible camera movement instead of 160 ms.
+- Enable native intermediate level-of-detail skipping on phones, where the tileset supports it. Reduce moving request culling multiplier from 45 to 30 and peripheral tile delay from 100 to 60 ms. Initial stationary mesh screen-space error 32 instead of 28 prioritizes a coarser first view; after a visible tile, settled error returns to 20, unchanged from v1.73.
+- Keep the phone mesh cache at 80 MiB plus 32 MiB overflow, no increased request concurrency, and the v1.72 mobile software world renderer unchanged. Desktop options, sources, cube toggle, labels and credits unchanged.
+- Test Helsinki on phone over the same connection as v1.73: zoom in, stop, inspect first visible mesh and full detail, rotate, toggle the cube, zoom out and reset. The optimization is not a measured speed guarantee; network, device and provider limits remain. Actual Android rendering and live downloads not tested in this build.
+
 ## v1.73 test — geometry toggle and faster photomesh refinement
 
 - The cube in the Cesium-only navigation toolbar is a geometry switch, on by default. It hides/removes both native photogrammetry and simplified buildings, invalidates pending mesh/footprint work, and does not change the camera, markers, imagery, labels or credits for visible layers. Reset and mode changes retain the setting for the current page session. Compatibility mode temporarily disables the cube; returning to normal imagery restores the chosen preference. Re-enabling geometry reloads a relevant mesh as needed.
@@ -248,3 +255,11 @@ A planned later enhancement is a local Marian Apparitions Manager for editing ye
 - Keep the centered **MARIAN APPARITIONS ✧ STORIES OF FAITH** desktop heading; no duplicate Sky Surfer wordmark.
 - Preserve the label on narrow phone fullscreen layouts with tighter spacing.
 - Retain all v1.45 map border styling fixes, views, mobile drawer and PDF functionality.
+
+## v1.75 test — smoother Cesium globe and earlier names
+
+- Mobile Canvas2D distant Earth now targets a roughly 30 ms redraw interval during movement (previously 65 ms), with adaptive raster dimensions, reused pixel buffers and a higher-resolution bilinear-sampled frame after settling. Actual frame rate depends on the device.
+- Native Cesium camera inertia has been slightly increased for pan/rotation and zoom. Standard MapLibre globe behavior is unchanged.
+- Overview names fade in between 64% and 94% of the smaller map viewport dimension; 177 bundled Natural Earth country/territory label anchors and selected ocean names require no tile requests. Screen-space collision checks and horizon culling keep text readable.
+- At the existing mobile software/native handoff, OpenFreeMap cartography becomes eligible immediately, rather than waiting until 4.5 million meters altitude. Compatibility mode continues to suppress labels.
+- No change to imagery sources, photomesh streaming settings, 3D cube, credits, or the existing mobile black-globe safety path.

@@ -616,7 +616,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isExplorer?'MARIAN APPARITIONS MAP':isCesium?'CESIUM 3D GLOBE':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.73 TEST`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isExplorer?'MARIAN APPARITIONS MAP':isCesium?'CESIUM 3D GLOBE':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.75 TEST`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){

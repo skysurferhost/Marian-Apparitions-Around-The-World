@@ -179,7 +179,7 @@
   globe.tileCacheSize=phone?100:420;
   globe.loadingDescendantLimit=phone?(moving?8:16):(moving?12:24);
   globe.preloadSiblings=!phone&&!moving&&p.height<45000;
-  if(labels)labels.alpha=moving?.77:1;
+  
   return moving;
  }
  function removeOam(){for(const l of oamLayers)viewer.imageryLayers.remove?.(l,true);oamLayers=[];oamIds='';}
@@ -234,7 +234,14 @@
   // Restore network imagery progressively when approaching a region.
   if(blue)blue.show=true;
   if(eox)eox.show=!compatibilityMode&&!mobileWorldMode&&(!phone||height<8000000);
-  if(labels)labels.show=!compatibilityMode&&(!phone||height<4500000);
+  if(labels){
+   // Canvas2D draws its own screen-space overview names; native tiles take over
+   // immediately after the mobile world handoff instead of leaving a label gap.
+   const fill=window.SKY_SURFER_MOBILE_WORLD?.screenFill(viewer.camera,canvas.clientWidth,canvas.clientHeight)??1;
+   const opacity=Math.max(0,Math.min(1,(fill-.64)/.30));
+   labels.show=!compatibilityMode&&!mobileWorldMode&&opacity>0;
+   labels.alpha=opacity*(moving?.88:1);
+  }
   regionMode=!compatibilityMode&&height<(regionMode?650000:520000);
   const view=regionMode?viewer.camera.computeViewRectangle?.(ellipsoid):null;
   const intersects=r=>C.Rectangle.contains(r.rectangle,center)||(view&&C.Rectangle.intersection?.(r.rectangle,view));
@@ -284,8 +291,9 @@
     {eventType:gesture.LEFT_DRAG,modifier:C.KeyboardEventModifier.CTRL},
     {eventType:gesture.RIGHT_DRAG,modifier:C.KeyboardEventModifier.CTRL}];
   controls.maximumTiltAngle=80*Math.PI/180;
-  controls.inertiaSpin=.75;
-  controls.inertiaZoom=.65;
+  controls.inertiaSpin=isPhone()?.86:.80;
+  controls.inertiaZoom=isPhone()?.78:.72;
+  controls.inertiaTranslate=.82;
   // Restrict context-menu suppression to the Cesium canvas, not PDF or site UI.
   viewer.scene.canvas.addEventListener('contextmenu',event=>event.preventDefault());
   viewer.scene.canvas.setAttribute('aria-label','Cesium 3D Globe. Left-drag to pan, right-drag to rotate or tilt, scroll to zoom.');
@@ -295,7 +303,7 @@
   viewer.scene.postRender.addEventListener(()=>{frameCount++;if(frameCount===1){renderReady=true;log('First postRender event; canvas '+viewer.scene.canvas.width+'×'+viewer.scene.canvas.height);$('cesiumStatus').hidden=true;}if(frameCount===30)log('30 render frames completed (not a visual verification)');});
   setTimeout(()=>{if(active&&frameCount===0&&!lastError)status('No render frames reported after 12 seconds. Check WebGL / diagnostics.');},12000);
   setupMarkers(C);
-  try{mobileWorld=window.SKY_SURFER_MOBILE_WORLD?.create(C,viewer,$('cesiumMobileWorld'),markerEntities,log);viewer.scene.postRender.addEventListener(()=>{if(active)try{mobileWorld?.draw(mobileWorldMode);}catch(e){mobileWorld?.hide();mobileWorld=null;log('Mobile world rendering: '+e.message);}});}catch(e){log('Mobile world setup: '+e.message);}
+  try{mobileWorld=window.SKY_SURFER_MOBILE_WORLD?.create(C,viewer,$('cesiumMobileWorld'),markerEntities,log);viewer.scene.postRender.addEventListener(()=>{if(active)try{mobileWorld?.draw(mobileWorldMode,!compatibilityMode);}catch(e){mobileWorld?.hide();mobileWorld=null;log('Mobile world rendering: '+e.message);}});}catch(e){log('Mobile world setup: '+e.message);}
   // Use Cesium’s native credits lightbox, including dynamically active 3D sources.
   const creditDisplay=viewer.scene.frameState?.creditDisplay||viewer.scene.creditDisplay;
   const meshNode=$('cesiumMeshCredit');

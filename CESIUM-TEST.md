@@ -1,3 +1,10 @@
+## v1.74 test — mobile photorealistic streaming
+
+- Phone photomesh activation altitude 26 km (was 20 km), retained up to 32 km (was 25 km). The root request can start after 80 ms of eligible camera movement instead of 160 ms.
+- Enable native intermediate level-of-detail skipping on phones, where the tileset supports it. Reduce moving request culling multiplier from 45 to 30 and peripheral tile delay from 100 to 60 ms. Initial stationary mesh screen-space error 32 instead of 28 prioritizes a coarser first view; after a visible tile, settled error returns to 20, unchanged from v1.73.
+- Keep the phone mesh cache at 80 MiB plus 32 MiB overflow, no increased request concurrency, and the v1.72 mobile software world renderer unchanged. Desktop options, sources, cube toggle, labels and credits unchanged.
+- Test Helsinki on phone over the same connection as v1.73: zoom in, stop, inspect first visible mesh and full detail, rotate, toggle the cube, zoom out and reset. The optimization is not a measured speed guarantee; network, device and provider limits remain. Actual Android rendering and live downloads not tested in this build.
+
 ## v1.73 test — geometry toggle and faster photomesh refinement
 
 - The cube in the Cesium-only navigation toolbar is a geometry switch, on by default. It hides/removes both native photogrammetry and simplified buildings, invalidates pending mesh/footprint work, and does not change the camera, markers, imagery, labels or credits for visible layers. Reset and mode changes retain the setting for the current page session. Compatibility mode temporarily disables the cube; returning to normal imagery restores the chosen preference. Re-enabling geometry reloads a relevant mesh as needed.
@@ -85,3 +92,12 @@ The standard 3D Globe and map layouts are unchanged. Geographic label coverage d
 - Test the cube icon in the Cesium zoom controls near a city or shrine: it tilts the camera about 45 degrees, zooming to a city-scale view if needed. Click again for overhead. Middle-drag or Cesium touch tilt also works. Reset returns to the same world camera and removes nearby buildings.
 - 3D buildings load automatically when settled within 2.9 km camera altitude on desktop (1.7 km on phone). They use z14 OpenFreeMap/OpenMapTiles building polygons, height and minimum-height tags, excluding hidden building outlines; default approximate height 6 m when missing. Buildings are capped at 650 per tile desktop / 350 phone and at 9/5 nearby tiles; max two concurrent building loads. The vector cache is shared with labels (80 desktop / 48 phone). Old geometry is removed on navigation, reset or mode exit. Neutral extrusions, not textured photogrammetry; no terrain elevation model, and footprint completeness, tile-edge seams and heights vary. The limits favor performance and may omit smaller buildings in dense areas. Attribution remains in the existing map credit.
 - Test Fátima, Paris, Amsterdam, Rome, Harrisburg and Mexico City. Compare label size at full world and during zoom; check imagery refinement after stopping; tilt to inspect building geometry; reset and switch views. Observe browser network requests, errors, GPU use and mobile performance. Actual imagery/3D delivery and GPU rendering were not tested here.
+
+## v1.75 test — mobile navigation and overview labels
+
+1. Confirm v1.75 TEST appears, open Cesium, rotate and pinch the distant Earth on a phone. It should remain visible; motion should feel more responsive, with the texture sharpening after stopping.
+2. Zoom from a small globe until it nearly fills the map viewport. Country and ocean names should gradually appear, remain upright during rotation and avoid overlapping pins. Zoom out and check that they disappear again.
+3. Continue zooming into a city to check the native OpenFreeMap state/city/street labels, then return to the world using Reset. Confirm the 3D cube and photomesh still work in Helsinki.
+4. Repeat in landscape and fullscreen; check compatibility imagery mode, which suppresses names.
+
+Verification: all six Node regression suites passed, with new assertions for viewport-based label fade, projection, far-side culling and the bundled names. Isolated Chromium Canvas2D tests with the actual bundled Earth texture passed for rotation, zoom-dependent names and compatibility mode. The full live Cesium/Android performance and handoff are not benchmarked.
