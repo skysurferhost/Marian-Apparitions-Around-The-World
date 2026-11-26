@@ -1,5 +1,7 @@
-v1.62 integrated Cesium startup correction
-PASS: regression test reproduces the exact ReferenceError in v1.61 and passes against v1.62.
-PASS (mocked Cesium API): no startup error panel, render loop enabled, all six imagery layers registered, automatic region transitions (Portugal, France, Spain, US), Mexico/world fallback, tab switching, deep-link, marker selection, camera zoom/reset and hidden render-loop pause.
-PASS: JavaScript syntax and Python source compilation.
-NOT VERIFIED: actual Cesium GPU rendering, browser layout, live satellite/aerial imagery delivery and actual PDF interaction in Cesium.
+v1.70 test — synthetic/mock checks only
+PASS: mapped facade/roof colors; deterministic fallback; courtyard exclusions; imagery sample; vegetation rejection; low-resolution and CORS fallback.
+PASS: smaller world labels; polygon MVT decoding, building height/base, courtyard, hidden outlines, caps, concurrency, stale request discard and reset cleanup.
+Mocked Cesium integration: tab switching, deep-link, marker selection, camera zoom/reset, hidden render-loop pause, startup error panel hidden, all automatic region transitions, early entry/exit hysteresis, full settled detail, tile cache setting, four new regional sources, transparent label layer, Standard Globe mouse mappings, canvas context-menu suppression, fixed marker anchor, explicit horizon culling, marker selection scale and fallback passed.
+PASS: synthetic MVT decode, country/city/street rendering, road strokes, 512px alpha canvas, overzoom parent cache reuse.
+PASS: 9 public roots and custom configuration, lazy regional selection, native tileset options, visible mesh fallback, moving/settled refinement, cleanup, stale root disposal, failure cooldown, no cube button.
+NOT VERIFIED: live WebGL rendering, imagery sampling, photomesh streaming and actual performance.

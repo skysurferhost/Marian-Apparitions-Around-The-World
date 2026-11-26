@@ -1,25 +1,68 @@
-# v1.62 — integrated native Cesium globe with automatic open imagery
+## v1.70 test — natural building colors in Cesium
 
-This is a separate experiment. Keep v1.56 as your official release. The existing map engines, records, PDF assets and layouts are preserved. The Cesium globe is a third view inside index.html. It shares the sidebar, directory, markers, details/PDF panel and map controls.
+Fallback OSM buildings now use separately colored walls and roofs. OpenMapTiles `colour` (and roof tags if supplied) takes priority; otherwise stable muted palettes are used. Where eligible regional aerial imagery is already downloaded at z17+, roof interiors are sampled from a bounded in-memory cache (112 × 128 × 128 RGBA pixels, approximately 7 MiB). Transparent/no-data, dark and green samples are rejected; roof sampling avoids polygon holes. No additional imagery downloads or permanent tile storage. Australian imagery with third-party terms is not used for sampling. Existing photomesh textures, fixed marker coordinates, camera controls, and imagery layers remain unchanged.
 
-## v1.62 correction
-The regional selection function no longer shadows the viewer activation state. Error notices no longer overlap the startup status. This fixes the reported ReferenceError, not a claim of verified live rendering.
+Test Lourdes in overhead and tilted views. Allow existing imagery tiles to refine; sampled roof colors may refine in batches once the camera settles. Real facade textures and roof geometry require actual photogrammetry. The colors are estimates, not a photographic 3D reconstruction. No new mesh locations were added. The Open Heritage 3D Lourdes Grotto dataset (https://openheritage3d.org/project.php?id=9qbf-bq75) is noncommercial share-alike, non-georeferenced terrestrial LiDAR, not a ready-to-stream city tileset, so it is not bundled.
 
-## Run on Windows
-1. Extract the ZIP to a fresh folder. Run `START_CESIUM_TEST_WINDOWS.bat` to open index.html with the Cesium tab selected, or `START_LOCAL_WINDOWS.bat` and choose **Cesium 3D Globe**. Both launchers use a fresh available local port. Python 3 is required.
-2. Rotate and zoom normally; there is no imagery selector. Use the shared reset control and apparition list or markers to test Fátima, Lourdes and Guadalupe.
-3. CesiumJS 1.147 loads from the official CDN or a local `vendor/cesium` installation. If the library fails to load, run `INSTALL_CESIUM_WINDOWS.bat` or download the official prebuilt ZIP and drag it onto that installer. No ion token is used.
-4. For problems, expand Technical diagnostics and copy the output. Diagnostics report which regional layer is requested, not whether the imagery actually loaded.
+Run `node regression-cesium-building-colors.cjs` in addition to the other regression scripts. Synthetic tests pass; live aerial pixel sampling, GPU rendering, color appearance and performance have not been verified in a browser.
 
-## Automatic imagery
-The EOX 2016 worldwide imagery remains active. Bundled NASA Blue Marble is a low-resolution underlying fallback. Below 350 km camera altitude, a single regional source is automatically enabled based on the center of the camera view, with approximate rectangular geographic bounds. Returning to the global view hides regional layers. No imagery selector, account, paid tile service or billing configuration is included. Public services may impose limits or become unavailable. Source seams and missing tiles are possible; no worldwide rooftop-level guarantee.
+## v1.69 test — geographically anchored Cesium markers
 
-- Portugal mainland: DGT Ortofotos 2025, nominal 25 cm; WMS https://cartografia.dgterritorio.gov.pt/wms/ortos2025, layer Ortos2025-RGB. CC BY 4.0. https://www.dgterritorio.gov.pt/novo-catalogo-de-ortofotos-de-portugal-continental-no-centro-de-dados-da-dgt ; https://www.dgterritorio.gov.pt/atividades/cartografia/cartografia-topografica/ortofotos/ortofotos-digitais
-- Metropolitan France: IGN orthophotography, BD ORTHO nominal 20 cm where available; WMTS https://data.geopf.fr/wmts. Open Licence 2.0. https://www.data.gouv.fr/datasets/bd-ortho-r
-- Mainland Spain: PNOA latest imagery TMS https://tms-pnoa-ma.idee.es/1.0.0/pnoa-ma/{z}/{x}/{-y}.jpeg; CC BY 4.0, PNOA / IGN Spain. https://datos.gob.es/es/catalogo/e00125901-spaignpnoama ; https://pnoa.ign.es/pnoa-imagen/visualizadores-y-servicios-web
-- Contiguous United States: USGS/USDA National Map NAIP service, primarily 0.6 m according to the service description. Public-domain NAIP. https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
-- Guadalupe, Mexico, and other uncovered areas: EOX only (about 10 m), no verified open high-resolution tile service configured.
-- Global: EOxCloudless by EOX IT Services GmbH, modified Copernicus Sentinel data 2016, CC BY 4.0, https://cloudless.eox.at/ ; NASA Earth Observatory Blue Marble Next Generation, via Matplotlib Basemap data (bundled source notice).
-- Engine: CesiumJS, Apache 2.0, https://github.com/CesiumGS/cesium/blob/master/LICENSE.md ; https://cesium.com/learn/cesiumjs/ref-doc/UrlTemplateImageryProvider.html
+- Cesium pins retain their stored longitude/latitude on the existing ellipsoid and no longer clamp to streamed roofs or other 3D Tiles surfaces. The pin tip stays anchored, with a constant screen-facing size. Nearby 3D buildings do not hide the pins; a per-frame ellipsoid horizon check prevents pins showing through the far side of Earth.
+- All marker IDs, click/tap handlers, selected scale, camera controls, imagery and 3D Tiles sources remain unchanged. No new controls. The Standard 3D Globe and MapLibre map are unchanged apart from the displayed version.
+- The linked Cesium 3D Tiles Feature Styling demo concerns feature-level color and visibility; it is not a geographic anchoring mechanism. Native textured photomeshes remain unstyled to preserve their photographs. No new mesh coverage was added.
+- Test Lourdes: select, zoom closely, rotate and tilt in several directions; the tip should stay on the stored coordinate. Test the back of Earth, marker click, Reset and mode switching. Actual browser/GPU appearance is not verified. The current terrain is an ellipsoid; true elevated photomesh terrain may have vertical parallax relative to an ellipsoid-based pin.
 
-This uses an ellipsoid, not elevation terrain or photorealistic 3D buildings. The external library and regional services cannot be reached in the build environment; live tile CORS, coverage, image quality, and GPU rendering are unverified. The user's v1.59 standalone test rendered, but this does not establish v1.60 live behavior. See test-results.txt for local checks.
+## v1.68 test — native photorealistic 3D Tiles and simplified controls
+
+Removed the Cesium cube button (right-drag or middle-drag to tilt/rotate, left-drag to pan, wheel to zoom, touch pinch gestures remain). Nine regional photogrammetry root configurations use the CesiumJS native `Cesium3DTileset.fromUrl` loader. These are Helsinki, Finland, and Aurillac, Bourgoin-Jallieu, Clermont-Ferrand, Gex, Issoire, Le Puy-en-Velay, Saint-Étienne and Voiron, France. No key, Google Maps service or Cesium ion subscription is included. Automatically request a matching source when the camera settles below 12 km; remove it outside the region or above 17 km. One current source, adaptive screen-space error and bounded target GPU cache, collision enabled, provider credits displayed. OSM extrusions remain while loading and outside centered mesh coverage; suppress them for centered covered views after mesh tiles are visible. Aerial layers remain in place. Geographic labels remain on the underlying Earth imagery and may be obscured by actual 3D mesh surfaces. Regional footprints are approximate bounds, not guaranteed complete mesh coverage. Optional user-owned or licensed georeferenced 3D Tiles can be added in `photomesh-config.js`. See PHOTOMESH-SOURCES.md. Live CORS, payload delivery, rendering, mesh alignment, marker visibility and performance remain unverified.
+
+# Sky Surfer v1.67 — Standard 3D Globe mouse navigation test
+
+This release starts from v1.66. Test left drag at world and street scales; right drag horizontally for rotation and vertically for tilt, both from overhead and the angled cube view; wheel zoom; Ctrl+left drag; middle drag; and touch pinch. Verify right drag does not open a context menu or trigger zoom, and that left drag does not select a marker. Verify marker clicks, cube control, reset, mobile drawer, and other globe modes still work. Native Cesium controls are used rather than a custom drag implementation, so the exact feel may differ from MapLibre. No Unity/O3DE runtime, additional 3D Tiles dataset or paid service is included. References: https://cesium.com/learn/cesiumjs/ref-doc/ScreenSpaceCameraController.html and https://maplibre.org/maplibre-gl-js/docs/API/classes/DragRotateHandler/.
+
+# Sky Surfer v1.66 — Cesium labels, imagery refinement and 3D buildings test
+
+Keep v1.56 as the official stable release until this test is validated on your devices. This is an in-place update of v1.65, not a rebuild. Only the experimental Cesium imagery/camera logic, version labels, and associated documentation changed. Existing map modes, locations, marker artwork, PDFs and desktop/phone interface are retained.
+
+## Test it
+1. Extract the whole ZIP. Double-click `START_CESIUM_TEST_WINDOWS.bat` (Python 3 required). This opens `index.html?view=cesium` on a local HTTP server. `START_LOCAL_WINDOWS.bat` opens the normal index; click **Cesium 3D Globe**.
+2. Test Home/Reset after zooming down to rooftops. Reset now cancels flight and immediately restores the world camera, without removing the permanent base imagery.
+3. Test Fátima, Lourdes, Rome, Amsterdam, Akita, Champion and Guadalupe. Use the diagnostics panel to see which services are requested. A requested service is not proof of a delivered image. Use browser developer tools to inspect failed tiles.
+4. For GitHub Pages, upload the extracted contents (index.html at the publishing root), not the ZIP itself. The Cesium CDN or installed local Cesium library and the imagery services require network access, except the bundled Earth textures. The existing installer can install Cesium locally. Do not upload private API keys.
+
+## Imagery design
+- Bundled NASA Blue Marble is added first, and EOX 2016 is above it. Regional layers are never substituted for the base. EOX is limited to native level 14; regional sources use their configured levels, generally 18–20. No artificial sharpening creates real detail.
+- Below 520 km (retained until 650 km on zoom-out), select regional rectangles intersecting the view (or containing its center); no more than six at once on desktop and four on phone. Higher-priority sources are stacked above lower ones. Approximate rectangles can overlap; transparent missing tiles reveal the layer below. Fully transparent or uniformly near-black/white sampled tiles are replaced with transparent tiles. This heuristic may also reject very uniform genuine imagery and cannot identify all provider placeholder images. HTTP failures use Cesium's ordinary tile error handling.
+- Below 45 km, discover local OpenAerialMap STAC items around the camera center. Only explicit CC BY 4.0, CC0, public domain or PDDL 1.0 items with visual assets and valid geographic bounds are accepted; use up to two at a time with attribution. No low-zoom coverage heatmaps, no unfiltered mosaic. The catalog and image tile servers are live dependencies. Discovery waits for camera motion to settle, caches up to 48 catalog cells for ten minutes, cancels superseded requests, and discards stale responses; and layers removed on world reset or mode exit. Imagery availability and density vary widely.
+- Two optional free-key providers (LINZ New Zealand and Finland NLS) are configured but disabled by default. Obtain browser-safe keys from the providers and set them in `imagery-keys.js` only if their terms permit public use on your site. No paid API or credentials are bundled.
+- There are no new imagery selection buttons. The cube button controls camera perspective only. Cesium's existing credits remain visible. See `IMAGERY-SOURCES-v1.65.md` for source records and exclusions.
+
+## v1.64 speed changes
+- Regional checks run every 160 ms rather than 650 ms. Earlier entry and exit hysteresis reduce delays and repeated switching.
+- During camera motion, screen-space error is temporarily 2.6 on desktop or 3.5 on phone; once settled, the original 1.35 / 2 detail settings return. No imagery provider maximum level was reduced. During motion, only the top four desktop or three mobile sources are newly enabled; already active matching sources within the original six/four caps are retained to avoid reloading them. Stationary caps remain six and four.
+- Cesium's terrain tile cache is 240 desktop / 120 phone instead of the default 100, which trades some memory for faster revisits. Ancestor preload remains enabled; sibling preload remains disabled. See https://cesium.com/learn/cesiumjs/ref-doc/Globe.html.
+- OpenAerialMap metadata caching and cancellation avoid repeated lookups and requests for locations left behind. No bulk image caching or offscreen downloads are introduced.
+- Regional provider list and global fallback are unchanged from v1.63. 18 sovereign countries plus seven French overseas territories have dedicated configured regional imagery; Canada and Germany are partial. Two additional countries require free keys. Global imagery is worldwide; live aerial coverage is not guaranteed.
+
+## Verification status
+JavaScript syntax and mocked integration regression tests pass. The execution environment cannot resolve external tile hosts, so no live browser imagery, CORS, GPU rendering, mobile performance, or real Reset visual result has been verified. Individual service paths, layer IDs, maximum zoom, rights and availability can change; confirm live sources and attribution before public release. This is a test build, not a worldwide high-resolution guarantee.
+
+## v1.65 tests
+
+1. Extract the full ZIP, run START_CESIUM_TEST_WINDOWS.bat and check countries at world view. Zoom gradually into a state, city, neighborhood and street. Compare with the standard 3D Globe tab.
+2. Test Ljubljana, Reykjavík, Brisbane and Sydney for additional aerial sources. Check diagnostics for regional source activation and tile failures.
+3. Test Home/Reset and switch between all existing views; confirm no imagery is removed by the label overlay.
+4. Test a local OpenAerialMap image: the labels should remain above it. Test phone portrait and landscape, and fullscreen, then test GitHub Pages index.html.
+5. Labels use a separate transparent 512 px tile provider with zoom-based density and collision suppression, and a 64-entry in-memory decoded vector tile cache. Source zoom is capped at 14 and reused at display zooms up to 18. Extremely small features and labels near tile edges can be omitted. If a label request fails, base imagery remains visible.
+
+The standard 3D Globe and map layouts are unchanged. Geographic label coverage depends on OpenStreetMap, and aerial image coverage, resolution and freshness depend on each provider.
+
+
+## v1.66 changes and test procedure
+
+- Country font at low zoom is 10 px instead of 19 px on the 512 px label tile; continent 13 vs 23; high zoom streets 10 vs 13. Smaller density limits, wider collision padding, lighter outlines and roads; temporarily reduced label opacity during movement. These are tile-rendering sizes, not guaranteed screen-pixel sizes. Parent-tile labels may still temporarily scale during streaming.
+- Region checks 120 ms, activation/exit 520/650 km, motion settle 180 ms, moving SSE desktop 2.0/mobile 2.8, settled SSE unchanged (1.35/2). During movement up to 3 desktop/2 phone regional sources, full 6/4 when settled; more terrain tiles retained (320/140), loadingDescendantLimit 16/32 during movement/settle. No new imagery downloads in bulk. External service speed and native image resolution remain limitations.
+- Test the cube icon in the Cesium zoom controls near a city or shrine: it tilts the camera about 45 degrees, zooming to a city-scale view if needed. Click again for overhead. Middle-drag or Cesium touch tilt also works. Reset returns to the same world camera and removes nearby buildings.
+- 3D buildings load automatically when settled within 2.9 km camera altitude on desktop (1.7 km on phone). They use z14 OpenFreeMap/OpenMapTiles building polygons, height and minimum-height tags, excluding hidden building outlines; default approximate height 6 m when missing. Buildings are capped at 650 per tile desktop / 350 phone and at 9/5 nearby tiles; max two concurrent building loads. The vector cache is shared with labels (80 desktop / 48 phone). Old geometry is removed on navigation, reset or mode exit. Neutral extrusions, not textured photogrammetry; no terrain elevation model, and footprint completeness, tile-edge seams and heights vary. The limits favor performance and may omit smaller buildings in dense areas. Attribution remains in the existing map credit.
+- Test Fátima, Paris, Amsterdam, Rome, Harrisburg and Mexico City. Compare label size at full world and during zoom; check imagery refinement after stopping; tilt to inspect building geometry; reset and switch views. Observe browser network requests, errors, GPU use and mobile performance. Actual imagery/3D delivery and GPU rendering were not tested here.

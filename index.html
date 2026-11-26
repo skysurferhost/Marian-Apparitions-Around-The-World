@@ -14,7 +14,7 @@
       if (savedTheme === 'day' || savedTheme === 'night') document.documentElement.dataset.theme = savedTheme;
     } catch (_) { /* Private/local browsing may disallow storage. */ }
   </script>
-<link rel="stylesheet" href="cesium-integrated.css?v=1.62">
+<link rel="stylesheet" href="cesium-integrated.css?v=1.70">
 </head>
 <body>
   <div class="app-shell">
@@ -81,7 +81,7 @@
           <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
         </div>
         <canvas id="stars" aria-hidden="true"></canvas>
-        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.62 TEST</div>
+        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.70 TEST</div>
         <div class="view-switch" aria-label="Map view mode">
           <div class="view-switch-middle">
           <button class="view-tab active" id="satelliteViewBtn" type="button" aria-pressed="true" aria-controls="explorerStyleSwitch" aria-expanded="true">Marian Apparitions Map</button>
@@ -98,6 +98,7 @@
           <div id="cesiumEarth" aria-label="Interactive Cesium Earth"></div>
           <div id="cesiumStatus" role="status">Starting CesiumJS…</div>
           <div id="cesiumFailure" hidden role="alert"><strong>Cesium could not start</strong><p id="cesiumReason"></p><p>If the library failed to load, run INSTALL_CESIUM_WINDOWS.bat and reopen the project.</p><button type="button" id="cesiumRetry">Retry Cesium</button> <button type="button" id="cesiumReturn">Return to map</button></div>
+          <div id="cesiumMeshCredit" hidden></div>
           <details id="cesiumDiagnostics"><summary>Cesium diagnostics</summary><pre id="cesiumLog"></pre><p id="cesiumSourceCredit"></p><button type="button" id="cesiumCopy">Copy diagnostics</button></details>
         </div>
         <div class="globe-area" id="globeArea">
@@ -202,10 +203,15 @@
   <script src="site-data.js"></script>
   <script src="globe-texture.js"></script>
   <script src="download-manifest.js"></script>
-  <script src="app.js?v=1.62"></script>
+  <script src="app.js?v=1.70"></script>
   <script src="pdf-download.js"></script>
   
-  <script src="cesium-integrated.js?v=1.62"></script>
-  <script src="maplibre-explorer.js?v=1.62"></script>
+  <script src="imagery-keys.js?v=1.70"></script>
+  <script src="cesium-labels.js?v=1.70"></script>
+  <script src="cesium-buildings.js?v=1.70"></script>
+  <script src="photomesh-config.js?v=1.70"></script>
+  <script src="cesium-photomesh.js?v=1.70"></script>
+  <script src="cesium-integrated.js?v=1.70"></script>
+  <script src="maplibre-explorer.js?v=1.70"></script>
 </body>
 </html>

@@ -9,9 +9,9 @@ root = Path(__file__).resolve().parent
 handler = partial(SimpleHTTPRequestHandler, directory=str(root))
 # A fresh OS-selected port avoids accidentally opening an older running ZIP.
 with ThreadingHTTPServer(('127.0.0.1', 0), handler) as server:
-    page = 'index.html?v=1.62' + ('' if '--main' in sys.argv else '&view=cesium')
+    page = 'index.html?v=1.64' + ('' if '--main' in sys.argv else '&view=cesium')
     url = f'http://127.0.0.1:{server.server_port}/{page}'
-    print('Sky Surfer v1.62 integrated Cesium test:', url, flush=True)
+    print('Sky Surfer v1.64 integrated Cesium test:', url, flush=True)
     print('Keep this window open. Ctrl+C stops the local server.', flush=True)
     webbrowser.open(url)
     try:

@@ -1,3 +1,38 @@
+## v1.70 test — natural building colors in Cesium
+
+Fallback OSM buildings now use separately colored walls and roofs. OpenMapTiles `colour` (and roof tags if supplied) takes priority; otherwise stable muted palettes are used. Where eligible regional aerial imagery is already downloaded at z17+, roof interiors are sampled from a bounded in-memory cache (112 × 128 × 128 RGBA pixels, approximately 7 MiB). Transparent/no-data, dark and green samples are rejected; roof sampling avoids polygon holes. No additional imagery downloads or permanent tile storage. Australian imagery with third-party terms is not used for sampling. Existing photomesh textures, fixed marker coordinates, camera controls, and imagery layers remain unchanged.
+
+Test Lourdes in overhead and tilted views. Allow existing imagery tiles to refine; sampled roof colors may refine in batches once the camera settles. Real facade textures and roof geometry require actual photogrammetry. The colors are estimates, not a photographic 3D reconstruction. No new mesh locations were added. The Open Heritage 3D Lourdes Grotto dataset (https://openheritage3d.org/project.php?id=9qbf-bq75) is noncommercial share-alike, non-georeferenced terrestrial LiDAR, not a ready-to-stream city tileset, so it is not bundled.
+
+Run `node regression-cesium-building-colors.cjs` in addition to the other regression scripts. Synthetic tests pass; live aerial pixel sampling, GPU rendering, color appearance and performance have not been verified in a browser.
+
+## v1.69 test — geographically anchored Cesium markers
+
+- Cesium pins retain their stored longitude/latitude on the existing ellipsoid and no longer clamp to streamed roofs or other 3D Tiles surfaces. The pin tip stays anchored, with a constant screen-facing size. Nearby 3D buildings do not hide the pins; a per-frame ellipsoid horizon check prevents pins showing through the far side of Earth.
+- All marker IDs, click/tap handlers, selected scale, camera controls, imagery and 3D Tiles sources remain unchanged. No new controls. The Standard 3D Globe and MapLibre map are unchanged apart from the displayed version.
+- The linked Cesium 3D Tiles Feature Styling demo concerns feature-level color and visibility; it is not a geographic anchoring mechanism. Native textured photomeshes remain unstyled to preserve their photographs. No new mesh coverage was added.
+- Test Lourdes: select, zoom closely, rotate and tilt in several directions; the tip should stay on the stored coordinate. Test the back of Earth, marker click, Reset and mode switching. Actual browser/GPU appearance is not verified. The current terrain is an ellipsoid; true elevated photomesh terrain may have vertical parallax relative to an ellipsoid-based pin.
+
+## v1.68 test — native photorealistic 3D Tiles and simplified controls
+
+Removed the Cesium cube button (right-drag or middle-drag to tilt/rotate, left-drag to pan, wheel to zoom, touch pinch gestures remain). Nine regional photogrammetry root configurations use the CesiumJS native `Cesium3DTileset.fromUrl` loader. These are Helsinki, Finland, and Aurillac, Bourgoin-Jallieu, Clermont-Ferrand, Gex, Issoire, Le Puy-en-Velay, Saint-Étienne and Voiron, France. No key, Google Maps service or Cesium ion subscription is included. Automatically request a matching source when the camera settles below 12 km; remove it outside the region or above 17 km. One current source, adaptive screen-space error and bounded target GPU cache, collision enabled, provider credits displayed. OSM extrusions remain while loading and outside centered mesh coverage; suppress them for centered covered views after mesh tiles are visible. Aerial layers remain in place. Geographic labels remain on the underlying Earth imagery and may be obscured by actual 3D mesh surfaces. Regional footprints are approximate bounds, not guaranteed complete mesh coverage. Optional user-owned or licensed georeferenced 3D Tiles can be added in `photomesh-config.js`. See PHOTOMESH-SOURCES.md. Live CORS, payload delivery, rendering, mesh alignment, marker visibility and performance remain unverified.
+
+## v1.67 test — Standard 3D Globe mouse navigation
+
+Cesium-only native camera bindings now use left drag for globe panning, right drag for orbit/tilt, and the wheel for zoom. Middle drag and Ctrl+left drag also tilt; touch pinch remains supported. Right drag no longer zooms. The camera tilt is capped at 80 degrees from overhead, with reduced spin and zoom inertia. All imagery, labels, buildings and existing map modes remain unchanged. Actual mouse feel and live GPU rendering still need browser verification.
+
+## v1.66 test — refined Cesium cartography, faster refinement and 3D perspective
+
+Smaller and less dense geographic labels, thinner linework, earlier regional imagery activation, 120 ms region checks, 320/140 desktop/mobile terrain-tile cache and 180 ms motion settle interval. New Cesium-only cube control toggles between overhead and angled views. The existing OpenFreeMap vector source supplies on-demand OSM building footprints and approximate heights, extruded as neutral 3D geometry at close zoom; no ion account or paid data required. The 41 regional configurations and global fallback remain unchanged. Building coverage, height accuracy, actual tile speed, live GPU rendering and service availability require real browser testing. See CESIUM-TEST.md.
+
+## v1.65 test — Cesium worldwide geographic labels and additional aerial imagery
+
+Adds transparent OpenFreeMap / OpenStreetMap cartography on top of all Cesium imagery, with zoom-dependent country, administrative region, settlement, road and selected landmark labels. Includes four additional regional imagery configurations in Slovenia, Iceland and Australia. Retains v1.64 progressive loading, permanent Blue Marble fallback, automatic imagery selection and reset. See CESIUM-TEST.md and IMAGERY-SOURCES-v1.65.md. Live imagery and label rendering remain unverified.
+
+## v1.64 test — faster progressive Cesium imagery loading
+
+Progressive detail, faster regional checks, larger tile cache, and cached local catalog searches; automatic national/regional sources and explicitly licensed OpenAerialMap imagery discovery; permanent bundled Blue Marble base; immediate camera reset. See CESIUM-TEST.md and IMAGERY-SOURCES-v1.64.md. Live imagery and rendering remain unverified.
+
 ## v1.62 — Cesium startup correction
 
 Fixed a JavaScript temporal-dead-zone error in automatic regional imagery selection (a local variable shadowed the globe activation state). Startup now proceeds to the underlying Blue Marble layer and regional update timer. No imagery providers or original map features were changed. Live GPU rendering remains unverified.
