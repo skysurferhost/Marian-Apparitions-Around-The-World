@@ -69,7 +69,7 @@
   const url=source.replace('{z}',z).replace('{x}',x).replace('{y}',y),resource=new C.Resource({url,request});const download=resource.fetchArrayBuffer();if(download===undefined)return undefined;
   promise=Promise.resolve(download).then(parse);cache.set(key,promise);promise.catch(()=>{if(cache.get(key)===promise)cache.delete(key);});const limit=typeof matchMedia==='function'&&matchMedia('(max-width:800px)').matches?48:80;while(cache.size>limit)cache.delete(cache.keys().next().value);return promise;
  }
- function create(C){const scheme=new C.WebMercatorTilingScheme();const provider=new C.UrlTemplateImageryProvider({url:source,tilingScheme:scheme,tileWidth:SIZE,tileHeight:SIZE,maximumLevel:DISPLAY_MAX,credit:new C.Credit(credit,true),enablePickFeatures:false});
+ function create(C){const scheme=new C.WebMercatorTilingScheme();const provider=new C.UrlTemplateImageryProvider({url:source,tilingScheme:scheme,tileWidth:SIZE,tileHeight:SIZE,hasAlphaChannel:true,maximumLevel:DISPLAY_MAX,credit:new C.Credit(credit,false),enablePickFeatures:false});
   provider.requestImage=(x,y,z,request)=>{const sz=Math.min(z,SOURCE_MAX),factor=2**(z-sz),sx=Math.floor(x/factor),sy=Math.floor(y/factor);const promise=loadTile(C,sx,sy,sz,request);if(promise===undefined)return undefined;return promise.then(data=>render(data,x,y,z,sz,sx,sy));};return provider;
  }
  root.SKY_SURFER_CESIUM_LABELS={create,parse,geometry,placeRule,roadRule,render,loadTile,credit};

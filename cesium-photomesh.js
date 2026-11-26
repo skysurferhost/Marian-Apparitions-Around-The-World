@@ -24,13 +24,13 @@
  function inside(s,p){const [w,b,e,n]=s.bounds;return p.longitude>=w&&p.longitude<=e&&p.latitude>=b&&p.latitude<=n;}
  function distance(s,p){const [w,b,e,n]=s.bounds;const dx=Math.max(w-p.longitude,0,p.longitude-e)*Math.cos(p.latitude),dy=Math.max(b-p.latitude,0,p.latitude-n);return Math.hypot(dx,dy)*6371000;}
  function create(C,viewer,isPhone,log,creditNode){
-  let current=null,pending=null,wanted=null,generation=0,visibleAt=0,failures=0,startedAt=0;
+  let current=null,pending=null,wanted=null,generation=0,visibleAt=0,failures=0,startedAt=0,wantedAt=0;
   const retry=new Map(),collection=viewer.scene.primitives;
   function credit(text=''){if(creditNode){creditNode.textContent=text;creditNode.hidden=!text;}}
   function remove(){generation++;wanted=null;visibleAt=0;if(current){collection.remove(current.tileset);current=null;}credit();}
   function clear(){remove();}
   function destroyUnused(tileset){if(tileset&&!tileset.isDestroyed?.())tileset.destroy?.();}
-  function options(){const phone=isPhone();return {maximumScreenSpaceError:phone?24:16,cacheBytes:(phone?72:192)*MB,maximumCacheOverflowBytes:(phone?32:96)*MB,showCreditsOnScreen:true,dynamicScreenSpaceError:true,cullRequestsWhileMoving:true,preloadWhenHidden:false,preloadFlightDestinations:false,progressiveResolutionHeightFraction:.35,enableCollision:true};}
+  function options(){const phone=isPhone();return {maximumScreenSpaceError:phone?24:16,cacheBytes:(phone?80:256)*MB,maximumCacheOverflowBytes:(phone?32:96)*MB,showCreditsOnScreen:false,dynamicScreenSpaceError:true,cullRequestsWhileMoving:true,preloadWhenHidden:false,preloadFlightDestinations:true,progressiveResolutionHeightFraction:.25,foveatedScreenSpaceError:true,foveatedConeSize:.15,foveatedTimeDelay:.1,enableCollision:true};}
   async function open(source){const token=++generation;const job={source,token,at:Date.now()};pending=job;startedAt=job.at;failures=0;let tileset;
    try{tileset=await C.Cesium3DTileset.fromUrl(source.url,options());
     if(token!==generation||wanted!==source||viewer.isDestroyed()){destroyUnused(tileset);return;}
@@ -44,13 +44,13 @@
   function update(center,height,moving){
    // Expire a stuck root attempt. A late result still gets destroyed by its token check.
    if(pending&&Date.now()-pending.at>30000){const job=pending;pending=null;retry.set(job.source,Date.now()+60000);if(job.token===generation){remove();log('Photomesh root timed out: '+job.source.name);}}
-   if(!center||!Number.isFinite(center.longitude)||!Number.isFinite(center.latitude)||!Number.isFinite(height)||height>(current?17000:12000)){if(wanted||current)remove();return false;}
+   if(!center||!Number.isFinite(center.longitude)||!Number.isFinite(center.latitude)||!Number.isFinite(height)||height>(current?25000:20000)){if(wanted||current)remove();return false;}
    const reach=current?2500:1600;const available=sources.filter(s=>distance(s,center)<=reach&&(retry.get(s)||0)<=Date.now()).sort((a,b)=>distance(a,center)-distance(b,center));
    const next=current&&available.includes(current.source)?current.source:available[0];
    if(!next){if(current||wanted)remove();return false;}
-   if(wanted!==next){remove();wanted=next;}
+   if(wanted!==next){remove();wanted=next;wantedAt=Date.now();}
    // Only one root request at a time; obsolete results are destroyed on arrival.
-   if(!current&&!pending&&!moving){open(next);return false;}
+   if(!current&&!pending&&(!moving||Date.now()-wantedAt>=160)){open(next);return false;}
    if(!current)return false;
    const phone=isPhone();current.tileset.maximumScreenSpaceError=moving?(phone?36:28):(phone?20:12);
    // Keep fallback until some mesh actually renders; failed roots get a cooldown.

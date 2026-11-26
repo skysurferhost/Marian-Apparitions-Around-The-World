@@ -29,3 +29,6 @@ City of Helsinki mesh (CC BY 4.0) and CRAIG experimental photomaillage (Licence 
 
 ### v1.70 building color derivation
 Only existing eligible regional imagery and explicitly licensed OAM imagery is sampled, in memory, with existing source attribution retained. Australian layers with third-party terms are excluded. OpenMapTiles schema https://openmaptiles.org/docs/schema/ and OpenStreetMap contributions are credited by the existing geographic layer. No new external data service.
+
+## v1.72 attribution UI
+Credits are retained in Cesium’s native attribution lightbox when the license permits flexible placement; mandatory or uncertain provider credits stay visible. The smaller Cesium logo and information icon do not remove source acknowledgments. See https://osmfoundation.org/wiki/Attribution_Guidelines and https://creativecommons.org/licenses/by/4.0/. Confirm provider-specific on-screen requirements before public deployment.
