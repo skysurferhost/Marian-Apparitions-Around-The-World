@@ -1,0 +1,5 @@
+v1.62 integrated Cesium startup correction
+PASS: regression test reproduces the exact ReferenceError in v1.61 and passes against v1.62.
+PASS (mocked Cesium API): no startup error panel, render loop enabled, all six imagery layers registered, automatic region transitions (Portugal, France, Spain, US), Mexico/world fallback, tab switching, deep-link, marker selection, camera zoom/reset and hidden render-loop pause.
+PASS: JavaScript syntax and Python source compilation.
+NOT VERIFIED: actual Cesium GPU rendering, browser layout, live satellite/aerial imagery delivery and actual PDF interaction in Cesium.

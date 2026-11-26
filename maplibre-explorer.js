@@ -346,6 +346,7 @@
     return [Math.round(Math.min(width-45,panelWidth)/2),0];
   }
   function recenterAfterDrawer(place){
+    if(viewMode==='cesium'){window.SKY_SURFER_CESIUM?.recenter(place,false);return;}
     if(!place || !isPhoneDrawer())return;
     const active=viewMode==='satellite'?map:viewMode==='globe'?satelliteGlobe:null;
     const ready=viewMode==='satellite'?mapReady:globeReady;
@@ -354,6 +355,7 @@
     active.easeTo({center:[place.lng,place.lat],zoom:active.getZoom(),offset:[0,0],duration:reducedMotion()?0:400,essential:true});
   }
   function phoneViewportChanged(place){
+    if(viewMode==='cesium'){window.SKY_SURFER_CESIUM?.recenter(place,true);return;}
     if(!place||!isPhoneDrawer())return;
     const active=viewMode==='satellite'?map:viewMode==='globe'?satelliteGlobe:null;
     const ready=viewMode==='satellite'?mapReady:globeReady;
@@ -508,7 +510,7 @@
       offset:phoneMarkerOffset(),duration:reducedMotion()?0:Math.min(1750,Math.max(760,920+Math.abs(lng-start.lng)*7)),
       easing:t=>t*t*(3-2*t),essential:true});
   }
-  function select(place){pendingSelection=place;updateMarkers();if(place){
+  function select(place){pendingSelection=place;updateMarkers();window.SKY_SURFER_CESIUM?.select(place);if(place){
     moveToSelected(place);moveGlobeToSelected(place);
   }}
 
@@ -589,17 +591,19 @@
   $('streetsBasemapBtn').addEventListener('click',()=>setBasemap('street'));
 
   function setMode(mode){
-    if(!['satellite','globe'].includes(mode))return;
+    if(!['satellite','globe','cesium'].includes(mode))return;
     viewMode=mode;
-    const isExplorer=mode==='satellite',isGlobe=mode==='globe';
+    const isExplorer=mode==='satellite',isGlobe=mode==='globe',isCesium=mode==='cesium';
     document.body.dataset.viewMode=mode;
     $('mapSection').classList.toggle('satellite-active',isExplorer);
     $('mapSection').classList.toggle('globe-active',isGlobe);
+    $('mapSection').classList.toggle('cesium-active',isCesium);
+    window.SKY_SURFER_CESIUM?.setActive(isCesium);
     root.hidden=!isExplorer;
 
     styleSwitch.hidden=!(isExplorer && explorerStyleExpanded);
     $('satelliteViewBtn').setAttribute('aria-expanded',String(isExplorer && explorerStyleExpanded));
-    for(const [id,active] of [['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe]]){
+    for(const [id,active] of [['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe],['cesiumViewBtn',isCesium]]){
       $(id).classList.toggle('active',active);
       $(id).setAttribute('aria-pressed',String(active));
     }
@@ -612,7 +616,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isExplorer?'MARIAN APPARITIONS MAP':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.53`;
+    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isExplorer?'MARIAN APPARITIONS MAP':isCesium?'CESIUM 3D GLOBE':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.62 TEST`;
     $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
     if(isExplorer){
       if(!map){
@@ -639,12 +643,15 @@
     }else{explorerStyleExpanded=true;setMode('satellite');}
   });
   $('globeViewBtn').addEventListener('click',()=>setMode('globe'));
+  $('cesiumViewBtn').addEventListener('click',()=>setMode('cesium'));
   $('globeZoomIn').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomIn({duration:reducedMotion()?0:280});
+    else if(viewMode==='cesium')window.SKY_SURFER_CESIUM?.zoom(1);
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomIn({duration:reducedMotion()?0:300});
   });
   $('globeZoomOut').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomOut({duration:reducedMotion()?0:280});
+    else if(viewMode==='cesium')window.SKY_SURFER_CESIUM?.zoom(-1);
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomOut({duration:reducedMotion()?0:300});
   });
   $('resetGlobe').addEventListener('click',()=>{
@@ -660,6 +667,7 @@
       }
       map?.stop();
       map?.easeTo({...explorerStart(),duration:reducedMotion()?0:950,essential:true});
+    }else if(viewMode==='cesium'){window.SKY_SURFER_CESIUM?.reset();
     }else if(viewMode==='globe' && globeReady){
       satelliteGlobe?.stop();
       satelliteGlobe?.easeTo({...GLOBE_START,duration:reducedMotion()?0:850,essential:true});
@@ -670,10 +678,10 @@
     else if(viewMode==='globe' && globeReady)satelliteGlobe?.resize();
   });
   window.SKY_SURFER_MAP={
-    refresh:()=>{updateMarkers();},select:place=>{select(place);},setMode,
+    refresh:()=>{updateMarkers();window.SKY_SURFER_CESIUM?.refresh();},select:place=>{select(place);},setMode,
     phoneViewportChanged,recenterAfterDrawer,
     getView:()=>({mode:viewMode,basemapMode,zoom:map?.getZoom(),center:map?.getCenter(),ready:mapReady}),
     getTileStats:()=>({library:'MapLibre GL JS',style:tileModeLabels[basemapMode],ready:mapReady,failed:mapFailed,errorType:lastErrorType,error:lastError,report:browserReport()})
   };
-  updateSwitch();setMode('satellite');
+  updateSwitch();setMode(new URLSearchParams(location.search).get('view')==='cesium'?'cesium':'satellite');
 })();

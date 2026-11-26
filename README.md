@@ -1,3 +1,15 @@
+## v1.62 — Cesium startup correction
+
+Fixed a JavaScript temporal-dead-zone error in automatic regional imagery selection (a local variable shadowed the globe activation state). Startup now proceeds to the underlying Blue Marble layer and regional update timer. No imagery providers or original map features were changed. Live GPU rendering remains unverified.
+
+## v1.62 test — Cesium integrated into index.html
+
+The third map button now switches the in-page Cesium view, rather than opening a separate page. Both launchers open index.html; the Cesium launcher selects the experimental tab automatically. Existing imagery, data and PDFs are preserved. See CESIUM-TEST.md.
+
+# v1.56 stable restoration
+
+Restored the v1.53 stable baseline. The v1.54/v1.55 experimental imagery controls, generator, and integrations are not included. Only release/version references have changed.
+
 # v1.53 minor label refinements
 
 - The map tab now reads **3D Globe** (capital G).
