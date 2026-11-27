@@ -16,6 +16,20 @@
       "Jacinta"
     ]
   },
+  "mymaps-our-lady-of-lourdes": {
+    "city": "Lourdes",
+    "state": "Occitanie",
+    "country": "France",
+    "continent": "Europe",
+    "keywords": [
+      "Lourdes",
+      "Bernadette Soubirous",
+      "Massabielle",
+      "France",
+      "1858",
+      "Immaculate Conception"
+    ]
+  },
   "mymaps-our-lady-of-guadalupe": {
     "city": "Mexico City",
     "state": "Mexico City",
@@ -31,18 +45,9 @@
       "1531"
     ]
   },
-  "mymaps-our-lady-of-lourdes": {
-    "city": "Lourdes",
-    "state": "Occitanie",
-    "country": "France",
-    "continent": "Europe",
-    "keywords": [
-      "Lourdes",
-      "Bernadette Soubirous",
-      "Massabielle",
-      "France",
-      "1858",
-      "Immaculate Conception"
-    ]
+  "mymaps-our-lady-of-mount-carmel": {
+    "city": "Aylesford",
+    "state": "Kent",
+    "country": "United Kingdom"
   }
 }
