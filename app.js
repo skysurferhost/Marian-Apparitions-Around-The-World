@@ -143,7 +143,6 @@
       }
       const info=document.createElement('span');info.className='place-info';
       const name=document.createElement('span');name.className='place-name';name.textContent=p.displayName || p.name;
-      if(p.isNew===true) name.append(makeNewLabel());
       const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition');
       const chev=document.createElement('span');chev.className='place-chevron';chev.textContent='›';
       info.append(name,sub);btn.append(index,info,chev);btn.addEventListener('click',()=>selectLocation(p,true));container.append(btn);
@@ -202,17 +201,15 @@
     const numeric=Number(place.year);
     return Number.isInteger(numeric)&&numeric>0?numeric:null;
   }
-  function makeNewLabel(){const tag=document.createElement('span');tag.className='apparition-new-label';tag.textContent='NEW';return tag;}
   function directoryItem(place, chronological=false){
-    /* Published NEW indicator */
     const item=document.createElement('button');item.type='button';item.className='directory-place';
     item.setAttribute('aria-label',`Show ${place.displayName||place.name} on the map and open details`);
     const info=document.createElement('span');info.className='directory-place-info';
     const title=document.createElement('span');title.className='directory-place-name';
     title.textContent=place.displayName||`${place.name}${place.year?' – '+place.year:''}`;
-    if(place.isNew===true) title.append(makeNewLabel());
     const location=document.createElement('span');location.className='directory-place-sub';
-    appendLocationWithFlag(location,place.geo,place.region||'');
+    if(chronological) appendLocationWithFlag(location,place.geo,place.region||'');
+    else location.textContent=[place.geo?.city,place.geo?.state,place.geo?.country].filter(Boolean).join(', ')||place.region||'';
     const arrow=document.createElement('span');arrow.className='directory-place-arrow';arrow.textContent='›';
     info.append(title,location);item.append(info,arrow);
     item.addEventListener('click',()=>{closeDirectory();selectLocation(place,true);});
