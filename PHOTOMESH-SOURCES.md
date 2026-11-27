@@ -1,6 +1,6 @@
-# v1.68 photogrammetry sources and testing
+# Photogrammetry sources — v1.76
 
-Native textured mesh 3D Tiles (not extruded footprint geometry). Nine root JSON documents were retrieved through web research; their child binary tiles, browser CORS and service load capacity were not tested. Some CRAIG open mesh datasets are offered on request; confirm third-party public-site streaming conditions before production deployment. No API keys bundled. Credits appear on the globe when a root is active.
+Native textured mesh 3D Tiles (not extruded footprint geometry). Nine root JSON documents were retrieved through web research; their child binary tiles, browser CORS and service load capacity were not tested. Some CRAIG open mesh datasets are offered on request; confirm third-party public-site streaming conditions before production deployment. No API keys bundled. Both views share this catalog; the flat satellite map uses deck.gl Tile3DLayer and the globe uses native Cesium 3D Tiles. Credits remain accessible while a root is active.
 
 | Dataset | Root |
 |---|---|

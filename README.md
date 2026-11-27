@@ -1,265 +1,102 @@
-## v1.74 test — mobile photorealistic streaming
+# Sky Surfer Marian Apparitions Map — v1.90
 
-- Phone photomesh activation altitude 26 km (was 20 km), retained up to 32 km (was 25 km). The root request can start after 80 ms of eligible camera movement instead of 160 ms.
-- Enable native intermediate level-of-detail skipping on phones, where the tileset supports it. Reduce moving request culling multiplier from 45 to 30 and peripheral tile delay from 100 to 60 ms. Initial stationary mesh screen-space error 32 instead of 28 prioritizes a coarser first view; after a visible tile, settled error returns to 20, unchanged from v1.73.
-- Keep the phone mesh cache at 80 MiB plus 32 MiB overflow, no increased request concurrency, and the v1.72 mobile software world renderer unchanged. Desktop options, sources, cube toggle, labels and credits unchanged.
-- Test Helsinki on phone over the same connection as v1.73: zoom in, stop, inspect first visible mesh and full detail, rotate, toggle the cube, zoom out and reset. The optimization is not a measured speed guarantee; network, device and provider limits remain. Actual Android rendering and live downloads not tested in this build.
+Production-format project with two modes: **Marian Apparitions Map** (Satellite / Street Map) and **3D Globe** (CesiumJS). The previous Standard 3D Globe is removed.
 
-## v1.73 test — geometry toggle and faster photomesh refinement
+## Open locally
 
-- The cube in the Cesium-only navigation toolbar is a geometry switch, on by default. It hides/removes both native photogrammetry and simplified buildings, invalidates pending mesh/footprint work, and does not change the camera, markers, imagery, labels or credits for visible layers. Reset and mode changes retain the setting for the current page session. Compatibility mode temporarily disables the cube; returning to normal imagery restores the chosen preference. Re-enabling geometry reloads a relevant mesh as needed.
-- On desktop, start native mesh loading at 30 km instead of 20 km; hold an existing mesh up to 36 km (previously 25 km). Stable moving target delay 80 ms instead of 160 ms (updates sampled every 120 ms). Initial settled SSE 24 instead of 12 until the first mesh is visible, then return to the existing full-detail target of 12. Desktop enables native level-of-detail skipping and reduces peripheral delay from 0.1 s to 0.05 s. Desktop mesh cache increases from 256 to 320 MiB, overflow remains 96 MiB. Reduce movement request culling aggressiveness and defer optional new local imagery/footprint work during initial refinement (up to 8 seconds from mesh opening attempt). Mobile keeps its 20 km activation, 80 MiB cache and no level skipping. Its initial coarse target is 28, then the previous settled target of 20; mobile Earth fallback is unchanged. Native data provider limits and actual download speed remain external constraints.
-- Tests: all six Node regression scripts pass, including mocked toggle visibility/state, camera preservation, geometry suppression and re-enable, compatibility preference, earlier mesh root opening, coarse-to-fine transition, stale mesh result disposal and the software globe math. No live Cesium browser or Android streaming benchmark was performed for this version. Check Helsinki with cube on/off, rotate and reset, switch map modes, and confirm phone world view and credits are unchanged.
+Extract the complete ZIP. Run `START_LOCAL_WINDOWS.bat` (Python 3 required), or `START_3D_GLOBE_WINDOWS.bat` to open the globe directly. Both now open the 3D Globe by default and start a local HTTP server; keep its window open. Internet access is required for remote imagery, map libraries, vector tiles and photogrammetry. `INSTALL_CESIUM_WINDOWS.bat` optionally downloads a local copy of CesiumJS. The map is not an offline imagery archive.
 
-## v1.72 test — quicker progressive streaming, mobile world and compact credits
+## Publish
 
-- On coarse-pointer/narrow phone views, an independent Canvas2D perspective renderer uses the bundled NASA Blue Marble JPEG at distant Earth scale (enters above 8,000 km, exits below 6,500 km). It follows the actual Cesium camera and redraws visible pins; the native canvas remains the interaction/pick target. Close-up imagery and photomesh remain native Cesium. This is a workaround for black world-scale WebGL imagery, not a diagnosis of the Android GPU. The initial fallback texture loads from the local project, without a new provider.
-- Photomesh roots may begin at 20 km (previously 12 km); a candidate stable for 160 ms can start during movement. Enable native flight destination preloading, central tile prioritization and a 0.1 s peripheral refinement delay; preserve settled detail and original photo textures. Desktop terrain cache 420 and desktop mesh cache 256 MiB; mobile terrain cache 100 and mesh cache 80 MiB. Optional local imagery and new footprint requests yield until a supported mesh starts rendering. No bulk downloads or provider changes.
-- The native Cesium credits expand control is styled as an information icon, with smaller logo. NASA, EOX, OpenStreetMap and qualifying open imagery credits use the native lightbox; active photomesh provider credit is added to that lightbox when supported. Other provider-specific credits may remain visible, especially Australian third-party data. Keep all attribution accessible. The original map and Standard Globe controls are preserved.
-- Browser test: Chromium Canvas2D with the actual NASA JPEG bytes embedded in an isolated test harness (local HTTP browsing was blocked in this environment). Perspective ray/UV, nonblack rendering, rotation and exit passed. The full integrated live Cesium browser, Android device and actual remote download speed were not verified. Verify the version label v1.72 TEST on the deployed site, then zoom out, rotate, Reset, zoom back in, inspect credits, and test Helsinki in both orientations.
+Upload all extracted files and folders to the existing GitHub Pages repository. Remove obsolete files from earlier versions if replacing the repository in place (the retired globe texture/script, old test launcher and old Earth illustrations are no longer referenced). Keep the whole `assets/cesium-base` directory, media, flags, configuration and `.github` workflow. The entry point is `index.html`; both modes are available there. The 3D Globe is the default on desktop and mobile. Existing `?view=cesium` or `?view=globe` links still open it; `?view=map` or `?view=satellite` explicitly opens the Marian Apparitions Map. Refresh the embedded page; the visible version stamp has been removed.
 
-## v1.71 test — mobile black Earth mitigation
+## v1.80 globe refinements
 
-Replaced the single large global texture with 170 bundled 256×256 geographic JPEG tiles (levels 0–3, 2×1 level-zero grid); the two root tiles are also embedded directly in the Cesium integration script. NASA imagery is installed before remote overlays. At world scale phones display the bundled imagery only; EOX returns below 8,000 km altitude and geographic labels below 4,500 km. Desktop behavior is unchanged apart from the new tiled base. Mobile uses browser-recommended resolution, no HDR, single-sample antialiasing, no ground atmosphere, a smaller terrain tile cache and fewer simultaneous regional layers. Credits remain visible in a compact format.
+- Keyboard travel multiplier increased from 0.72 to 0.82, and angular speed cap from 0.70 to 0.80 rad/s (about 14% faster at ordinary heights and at world scale).
+- Native Cesium photomesh begins earlier (36 km desktop, 30 km mobile), opens immediately when the camera center is within coverage, and retains nearby meshes longer. The moving request cull multiplier is slightly reduced (desktop 16, mobile 24), coarse-first priority uses a 0.25 height fraction, and peripheral delay is 15/25 ms. Final detail targets, memory budgets, provider catalog and mobile Earth renderer remain unchanged. These are configuration changes, not a measured live loading speed. The flat map renderer is unchanged.
 
-If the globe is still black, open **Cesium diagnostics → Use compatibility imagery**. This isolates the bundled base by disabling remote imagery, geographic labels and 3D building/mesh layers; press Restore full imagery to resume. The original map and Standard 3D Globe are not modified. On the hosted site, deploy all files and the entire assets/cesium-base directory; refresh the browser, verify v1.71 TEST, and try Cesium, zoom, marker selection, Reset, portrait and landscape. If black persists, copy diagnostics and test the Standard 3D Globe. The exact underlying Android WebGL failure is not confirmed; live rendering on the phone and Squarespace embedding were not tested. The site-level Squarespace header overlap is outside the ZIP and has not been changed.
+- Hold WASD or arrow keys to move over the globe relative to the camera heading; speed scales with altitude. Typing, PDF/directory dialogs and other map mode are excluded.
+- Camera-relative daylight uses an upper-left virtual sun (55° off-axis at world scale) to produce a lower-right twilight crescent like the supplied reference. Desktop uses Cesium’s native directional light and atmosphere; mobile uses the same direction with a smooth software shading curve that fades before the close-up handoff. This is an exploration lighting effect, not real-time day/night or a new cloud layer. The exact contrast differs between native and software renderers.
+- Removed visible version/mode overlay and globe diagnostics; required attribution remains. Internal compatibility and logging hooks remain for regression checks.
 
-## v1.70 test — natural building colors in Cesium
+## Map improvements
 
-Fallback OSM buildings now use separately colored walls and roofs. OpenMapTiles `colour` (and roof tags if supplied) takes priority; otherwise stable muted palettes are used. Where eligible regional aerial imagery is already downloaded at z17+, roof interiors are sampled from a bounded in-memory cache (112 × 128 × 128 RGBA pixels, approximately 7 MiB). Transparent/no-data, dark and green samples are rejected; roof sampling avoids polygon holes. No additional imagery downloads or permanent tile storage. Australian imagery with third-party terms is not used for sampling. Existing photomesh textures, fixed marker coordinates, camera controls, and imagery layers remain unchanged.
+- Shared `regional-imagery.js` catalog with 41 default regional configurations and optional user-owned keys. Map zoom limit 22; native image detail is still determined by provider source resolution. Geographic WMS imagery is reprojected into Web Mercator in the flat map. Missing or blank regional tiles leave the EOX base visible. Local OpenAerialMap discovery is limited to explicitly eligible licenses and bounded session caching.
+- One cube switch controls 3D geometry in both map modes and the globe. Its preference survives mode changes and reset during the page session; it does not move the camera. Street Map uses white extrusions. Satellite uses mapped/estimated natural colors and aerial-sampled roof colors when readable. Both use the same z14 decoded OpenFreeMap footprints, heights, minimum heights, courtyard geometry and palette. Native rendering and footprint clipping differ between engines, so pixel-perfect visual equality is not guaranteed.
+- Satellite and globe use the same nine textured 3D Tiles roots (plus expressly licensed custom configuration), with simplified buildings elsewhere. The flat map lazily loads deck.gl 9.1.14 using MapboxOverlay/Tile3DLayer; if it cannot load, simplified geometry and imagery remain available. The flat map mesh rendering is a new integration; live CORS, GPU rendering and visual alignment need verification. Street Map intentionally uses white simplified extrusions, not textured meshes.
+- The v1.75 software-rendered mobile distant Earth and geographic label fade are retained.
+- Removed the obsolete Google My Maps status footer and retired globe credits; retain required attribution to the sources actually used. The map's native compact attribution and globe's information control remain accessible.
 
-Test Lourdes in overhead and tilted views. Allow existing imagery tiles to refine; sampled roof colors may refine in batches once the camera settles. Real facade textures and roof geometry require actual photogrammetry. The colors are estimates, not a photographic 3D reconstruction. No new mesh locations were added. The Open Heritage 3D Lourdes Grotto dataset (https://openheritage3d.org/project.php?id=9qbf-bq75) is noncommercial share-alike, non-georeferenced terrestrial LiDAR, not a ready-to-stream city tileset, so it is not bundled.
+## Update your locations
 
-Run `node regression-cesium-building-colors.cjs` in addition to the other regression scripts. Synthetic tests pass; live aerial pixel sampling, GPU rendering, color appearance and performance have not been verified in a browser.
+Keep the existing `google-my-maps.kml`, `bindings.json`, `geography.json` and the PDF/image files under `media/`. These are content inputs; the KML is not displayed as a status message. `UPDATE_GLOBE_WINDOWS.bat` regenerates the location and preview data. The GitHub Actions workflow performs the same update on deployment. The existing project content is preserved, including its currently supplied locations and PDFs; this release does not invent new shrine records.
 
-## v1.69 test — geographically anchored Cesium markers
+## Release verification
 
-- Cesium pins retain their stored longitude/latitude on the existing ellipsoid and no longer clamp to streamed roofs or other 3D Tiles surfaces. The pin tip stays anchored, with a constant screen-facing size. Nearby 3D buildings do not hide the pins; a per-frame ellipsoid horizon check prevents pins showing through the far side of Earth.
-- All marker IDs, click/tap handlers, selected scale, camera controls, imagery and 3D Tiles sources remain unchanged. No new controls. The Standard 3D Globe and MapLibre map are unchanged apart from the displayed version.
-- The linked Cesium 3D Tiles Feature Styling demo concerns feature-level color and visibility; it is not a geographic anchoring mechanism. Native textured photomeshes remain unstyled to preserve their photographs. No new mesh coverage was added.
-- Test Lourdes: select, zoom closely, rotate and tilt in several directions; the tip should stay on the stored coordinate. Test the back of Earth, marker click, Reset and mode switching. Actual browser/GPU appearance is not verified. The current terrain is an ellipsoid; true elevated photomesh terrain may have vertical parallax relative to an ellipsoid-based pin.
+JavaScript syntax and eight regression suites were checked, including camera-relative daylight, default view selection, keyboard navigation, provider selection, geometry switching, and credit cleanup. Network access from the build container is unavailable, so real remote raster/mesh delivery, CDN availability, GPU rendering, browser performance and the Android device are not certified by these checks.
 
-## v1.68 test — native photorealistic 3D Tiles and simplified controls
+Before publishing to all visitors: test Lourdes in Satellite (close zoom, cube on/off) and Street Map (white buildings), Helsinki in Satellite and 3D Globe (textured meshes), and the phone's zoomed-out Earth, rotation, reset, label fade and PDF drawer. If the new flat-map mesh service is inaccessible, fallback geometry should remain usable. See `IMAGERY-LICENSING.md`, `IMAGERY-SOURCES.md` and `PHOTOMESH-SOURCES.md` for source and rights notes. No paid API keys are included.
 
-Removed the Cesium cube button (right-drag or middle-drag to tilt/rotate, left-drag to pan, wheel to zoom, touch pinch gestures remain). Nine regional photogrammetry root configurations use the CesiumJS native `Cesium3DTileset.fromUrl` loader. These are Helsinki, Finland, and Aurillac, Bourgoin-Jallieu, Clermont-Ferrand, Gex, Issoire, Le Puy-en-Velay, Saint-Étienne and Voiron, France. No key, Google Maps service or Cesium ion subscription is included. Automatically request a matching source when the camera settles below 12 km; remove it outside the region or above 17 km. One current source, adaptive screen-space error and bounded target GPU cache, collision enabled, provider credits displayed. OSM extrusions remain while loading and outside centered mesh coverage; suppress them for centered covered views after mesh tiles are visible. Aerial layers remain in place. Geographic labels remain on the underlying Earth imagery and may be obscured by actual 3D mesh surfaces. Regional footprints are approximate bounds, not guaranteed complete mesh coverage. Optional user-owned or licensed georeferenced 3D Tiles can be added in `photomesh-config.js`. See PHOTOMESH-SOURCES.md. Live CORS, payload delivery, rendering, mesh alignment, marker visibility and performance remain unverified.
+## v1.81 — Image / Street Viewer and sky objects
 
-## v1.67 test — Standard 3D Globe mouse navigation
+IMAGE VIEWER and STREET VIEWER share the apparition panel. The PDF viewer retains its page and zoom when switching back. The street iframe is unloaded when closing the panel or changing location.
 
-Cesium-only native camera bindings now use left drag for globe panning, right drag for orbit/tilt, and the wheel for zoom. Middle drag and Ctrl+left drag also tilt; touch pinch remains supported. Right drag no longer zooms. The camera tilt is capped at 80 degrees from overhead, with reduced spin and zoom inertia. All imagery, labels, buildings and existing map modes remain unchanged. Actual mouse feel and live GPU rendering still need browser verification.
+To enable embedded Google Street View for all locations:
+1. Enable Maps Embed API in a billing-enabled Google Cloud project. The Embed API itself is free with unlimited requests under Google's published terms.
+2. Create a public browser key restricted to Maps Embed API and your website HTTP referrers (e.g. your GitHub Pages origin; add localhost for local testing).
+3. In `street-view-config.js`, set `googleMapsEmbedKey` to that key. Never use private server credentials in this public static site.
+4. Alternatively, use Google Maps' own Street View Share / Embed action, where offered, and paste the generated iframe `src` URL into the `panoramas` object by apparition ID. These URLs override the key-based location lookup.
 
-## v1.66 test — refined Cesium cartography, faster refinement and 3D perspective
+No API key or verified share panorama URL is included. See the v1.83 notes below for the supplied Lourdes trial. Panorama coverage depends on Google.
+See https://developers.google.com/maps/documentation/embed/embedding-map and https://developers.google.com/maps/documentation/embed/get-api-key.
 
-Smaller and less dense geographic labels, thinner linework, earlier regional imagery activation, 120 ms region checks, 320/140 desktop/mobile terrain-tile cache and 180 ms motion settle interval. New Cesium-only cube control toggles between overhead and angled views. The existing OpenFreeMap vector source supplies on-demand OSM building footprints and approximate heights, extruded as neutral 3D geometry at close zoom; no ion account or paid data required. The 41 regional configurations and global fallback remain unchanged. Building coverage, height accuracy, actual tile speed, live GPU rendering and service availability require real browser testing. See CESIUM-TEST.md.
+Cesium's native Sun and Moon are enabled again. They use astronomical positions and may not always be within the camera field of view. Camera-relative globe illumination and close-up daylight remain unchanged.
 
-## v1.65 test — Cesium worldwide geographic labels and additional aerial imagery
+## v1.82 — Lightweight planetary background
 
-Adds transparent OpenFreeMap / OpenStreetMap cartography on top of all Cesium imagery, with zoom-dependent country, administrative region, settlement, road and selected landmark labels. Includes four additional regional imagery configurations in Slovenia, Iceland and Australia. Retains v1.64 progressive loading, permanent Blue Marble fallback, automatic imagery selection and reset. See CESIUM-TEST.md and IMAGERY-SOURCES-v1.65.md. Live imagery and label rendering remain unverified.
+Seven planetary sky directions follow approximate JPL Keplerian elements (1800–2050) in Earth-fixed coordinates. Planet sprites have illustrative colors, approximate signed rotation periods and enhanced visibility, not exact planetary textures, ring geometry, scale or navigable orbits. Recomputed once per minute, only projected at distant Earth views; no extra texture downloads. Cesium Sun/Moon retained.
 
-## v1.64 test — faster progressive Cesium imagery loading
+## v1.83 — Google-only Street Viewer
 
-Progressive detail, faster regional checks, larger tile cache, and cached local catalog searches; automatic national/regional sources and explicitly licensed OpenAerialMap imagery discovery; permanent bundled Blue Marble base; immediate camera reset. See CESIUM-TEST.md and IMAGERY-SOURCES-v1.64.md. Live imagery and rendering remain unverified.
+KartaView is removed. The Street Viewer only uses Google: a genuine Google Share / Embed iframe or the documented Maps Embed API. The iframe is created on demand when the tab is selected and unloaded on close or return to Image Viewer. The globe and planetary renderer are unchanged.
 
-## v1.62 — Cesium startup correction
+The supplied Lourdes URL has been included as an experimental conversion to the Google embed player format (not a verified Google-generated iframe). Its contributed photosphere may not load; the original viewpoint remains available via the Google link. No live Google rendering was verified here. Fátima and Guadalupe have external Street View links until their Google-generated embed codes or a restricted API key are provided.
 
-Fixed a JavaScript temporal-dead-zone error in automatic regional imagery selection (a local variable shadowed the globe activation state). Startup now proceeds to the underlying Blue Marble layer and regional update timer. No imagery providers or original map features were changed. Live GPU rendering remains unverified.
+For reliable no-key embeds, open the exact panorama in desktop Google Maps, select the three-dot menu, Share or embed image, Embed a map, and Copy HTML. Paste its iframe src (or full iframe markup as a quoted JavaScript string) into the corresponding ID in `street-view-config.js`. Google-generated embeds take priority over the trial. You can disable the trial via `allowTrialShareConversion: false`. The visitor does not have to leave the site unless choosing the fallback link.
 
-## v1.62 test — Cesium integrated into index.html
+References: https://support.google.com/maps/answer/7101463 and https://developers.google.com/maps/documentation/embed/embedding-map. The experimental pb parameter is undocumented and may change.
 
-The third map button now switches the in-page Cesium view, rather than opening a separate page. Both launchers open index.html; the Cesium launcher selects the experimental tab automatically. Existing imagery, data and PDFs are preserved. See CESIUM-TEST.md.
+## v1.84 — Street Viewer expansion and Lourdes update
 
-# v1.56 stable restoration
+The latest Lourdes share link is configured (same contributed panorama ID, new heading 322.58°, pitch −11.47°, and 63.8° field of view in the documented API). The existing experimental keyless conversion is still unverified; a black Google frame can mean the contributed panorama cannot be loaded using the reconstructed embed. Use Google's Share or embed image → Embed a map → Copy HTML and place the exact iframe in `street-view-config.js` under `panoramas` for a reliable configuration. A Reload control and the original Google link are available. Google-only; no replacement photography.
 
-Restored the v1.53 stable baseline. The v1.54/v1.55 experimental imagery controls, generator, and integrations are not included. Only release/version references have changed.
+Street Viewer now expands within the same in-app overlay as the PDF viewer. The iframe has no native fullscreen permission to avoid competing with whole-app fullscreen. A close control remains outside the iframe. Modern browsers preserve the iframe context using `moveBefore`; older browsers may reload the original panorama when moving the frame. Desktop, portrait and landscape share the same overlay. No globe or planetary rendering changes.
 
-# v1.53 minor label refinements
 
-- The map tab now reads **3D Globe** (capital G).
-- Removed the eyebrow above the Marian Apparitions Directory title in both browsing modes.
-- All other v1.52 behaviors and assets are unchanged.
+## v1.86 — All three Google-generated Street View embeds
 
-## v1.52 — Simplified search control and map tabs
+Lourdes, Fátima and Guadalupe now use the exact original Google Share → Embed iframe URLs supplied by the site owner. No API key or billing account is required for these embeds. Original panorama IDs and camera parameters are preserved. The optional API configuration remains empty and experimental URL conversion remains disabled. Existing in-app fullscreen, reload, external fallback and lazy loading remain unchanged. Add future original iframe src URLs to the panoramas object in `street-view-config.js`. Live Google panorama rendering is not verified in this environment.
 
-- Replaced the top-bar **Search Apparitions** list icon with a clear magnifying-glass icon, preserving its label and the directory interaction.
-- Added a subtle country flag immediately underneath each sidebar apparition number (01, 02, etc.) in Country and Timeline modes, using the bundled flag images.
-- Removed the redundant **Live Google Map** embedded view and tab. The two views are now **Marian Apparitions Map** (Satellite / Street Map) and **3D Globe**.
-- Map imagery failure guidance now offers the retained 3D Globe as an alternative rather than pointing to a removed tab.
-- Preserved the source Google My Maps KML file, Street View links, apparition data, map pins, PDF viewer, the new crowned-Mary header icon, and all Country/Timeline features from v1.51.
-- Cache-busted the CSS and JavaScript references so mobile browsers load the matching release assets.
+## v1.87 — Street Viewer motion controls
 
-## v1.51 — Marian header emblem
+The Google iframe now delegates accelerometer, gyroscope and magnetometer access only to https://www.google.com. Native child fullscreen is still disabled; use the app's existing FULLSCREEN button. The three original panorama URLs, no-key configuration and globe renderer are unchanged.
 
-- Replaced only the small top-left four-point diamond with the user-selected depiction of Our Lady wearing a crown and standing over a partial globe, surrounded by 12 stars. The emblem has been cropped and optimized as a transparent PNG for the circular desktop/phone header icon.
-- Kept **MARIAN APPARITIONS** beside the icon and the same link to `https://www.sky-surfer.com/marian-apparitions`.
-- Kept all maps, search controls, timelines, viewer/PDFs, existing markers, and other interactions unchanged from v1.50.
-- Cache-busted the header image and stylesheet to prevent older branding persisting after publication.
+When embedding the map in Squarespace, the outer iframe must also delegate these permissions to the hosted project and Google. Add the following attribute to the existing outer iframe (merge with its existing `allow` attribute, and keep its original `src`, dimensions and styles):
 
-## v1.50 — Unified Country / Timeline controls
+```html
+allow="accelerometer 'src' https://www.google.com; gyroscope 'src' https://www.google.com; magnetometer 'src' https://www.google.com; fullscreen 'src'"
+```
 
-- Replaced the **All apparitions / With media** sidebar filters with synchronized **Country / Timeline** browse choices. The sidebar now lists all matching apparitions in country A–Z order or earliest-to-latest year order (undated records last), while preserving search and marker selection.
-- Changed the popup directory label from **By Country** to **Country** and added clear globe/calendar icons to both pairs of equal-width buttons. Desktop and phone use the same gold-and-navy styling with generous touch targets.
-- Added versioned stylesheet and app-script URLs (`?v=1.50`) so mobile browsers do not reuse incompatible cached v1.48/v1.49 assets after GitHub Pages updates.
-- Original view modes, source data, 22px country group spacing, documents, and mobile PDF drawer unchanged.
+Retain the outer iframe's existing `allowfullscreen` attribute if present. Every ancestor iframe and response Permissions-Policy must permit sensor delegation. Use HTTPS. If motion tracking still fails, compare the direct GitHub Pages project URL with the Squarespace embed, and check the phone browser's motion sensor site permission. Browser/device and Google viewer restrictions may still prevent this feature; granting permission does not force the viewer to use sensors. Manual drag remains available. No live device motion test was performed. Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy
 
-## v1.49 — Phone world view and chronological browsing
+## v1.88 — Lourdes Street Viewer viewpoint
 
-- On phones only, the Marian Apparitions Map initially opens at MapLibre's minimum supported zoom (`0`) and its reset button returns to that same wide view. Desktop camera settings are unchanged. Marker selection still flies to the selected location.
-- Within Search Apparitions, choose **By Country** (original A–Z grouped directory) or **Timeline** (oldest-to-newest apparition years). The timeline uses only the years supplied in the apparition data, and undated records are placed last.
-- Existing country-group separation from v1.48 (+22px) is preserved, as are all three map views, the PDF viewer, markers, and mobile drawer.
+Replaced the Lourdes Google-generated embed URL with the updated original supplied by the site owner (heading 325.4316946817612°, pitch 0.013044887587255971°, original Google zoom parameter 0.4000000000000002). Fátima, Guadalupe, existing external fallback links, motion sensor permissions, and all other functionality are unchanged.
 
-## v1.48 — Balanced directory country spacing
+## v1.89 — Lourdes and Guadalupe Street Viewer viewpoints
 
-Added 22px of extra vertical separation between consecutive country groups in the Marian Apparitions Directory. Country headings, flags, listing appearance, map, viewer, and all other functionality are unchanged from v1.47.
+Verified that the supplied Lourdes embed matches v1.88 exactly. Replaced Guadalupe with the original Google-generated embed supplied by the site owner (heading 359.6049949067248°, pitch 2.3851084392022273°, original Google zoom parameter 0.5194893952558471). Fátima and all other functionality remain unchanged.
 
-## v1.47 — Restore v1.36-style satellite map boundaries
+## v1.90 — Street Map default
 
-Removed only the extra gold country-border overlays introduced in v1.44. Satellite map boundaries now match v1.36; all v1.46 UI, markers, PDFs, and other functionality remain unchanged.
-
-## v1.46 — satellite map border-style hotfix
-
-- Corrected the MapLibre paint `line-width` expression introduced in v1.44. The wider border halo now uses its **own top-level `interpolate` zoom expression**, instead of nesting a zoom expression inside a `+` operation (which MapLibre rejects and prevents the entire satellite map from loading).
-- Kept the international border colors/widths at the same zoom stops, for both the Marian Apparitions Map and 3D globe satellite styles.
-- Preserved the v1.44 desktop heading, phone fullscreen/regular layout, Search Apparitions label, Marian markers, PDFs, and original map modes.
-
-## Version 1.44 — fullscreen continuity and clearer geography
-
-- In phone portrait and landscape, **full screen keeps the same search/list/map layout as regular viewing**; the previous fullscreen-only `display:none` for the sidebar is overridden. Phone marker/PDF drawer remains left-sliding.
-- Restore centered desktop heading **MARIAN APPARITIONS ✧ STORIES OF FAITH** while keeping the top-left linked gold diamond.
-- Rename the searchable directory control **Search Apparitions**.
-- Remove per-apparition "1 media / 2 media" labels from the location list (PDF data and media counts within the PDF viewer remain unchanged).
-- Slightly strengthen international land borders in the MapLibre satellite Explorer and satellite globe using existing OpenFreeMap vector-tile data, when available. Third-party Google My Maps is not restyled.
-
-## v1.43 — Phone tap-to-dismiss and directory discoverability
-
-- Restored the gold diamond icon inside the upper-left site link (Marian Apparitions URL unchanged).
-- On phone portrait and landscape, tapping unused map imagery closes the selected apparition's PDF/details drawer. Dragging, pinching, long pressing, selecting another marker, and tapping a map control do **not** dismiss the drawer. The custom behavior applies to the Sky Surfer satellite map and globe, not to cross-origin Google My Maps iframe taps.
-- In phone fullscreen, the directory button now visibly says **Directory** instead of relying on an unlabeled list icon; it opens the existing searchable Marian Apparitions Directory.
-- The three original views, desktop right-side details panel, PDFs, and viewer overlay are preserved.
-
-## v1.42 — cleaner embedded header, PDF navigation, and headline
-
-- Updated the main headline to **Explore Marian Apparitions Around the World!**.
-- Removed the Sky Surfer wordmark and emblem from **the map app header**; the top-left link now reads **MARIAN APPARITIONS** and opens `https://www.sky-surfer.com/marian-apparitions` in a new tab. The surrounding Squarespace website header (outside the iframe) is controlled in Squarespace, not this app.
-- Renamed **Try the Street View** to **Street View**, preserving its Google Maps panorama link for the selected apparition. Moved this link to the bottom of the details panel, after the PDF viewer, so the PDF begins higher.
-- Replaced the long mixed desktop/phone PDF gestures with device-specific concise text: **Drag to pan · Pinch to zoom** on phones, mouse/keyboard hints on desktop. Improved the expanded PDF overlay footer's layout in phone portrait and landscape.
-- Preserved the three map views, the mobile left drawer, the desktop right panel, the Marian marker design, and all PDF assets.
-
-## v1.41 — Embedded mobile layout + larger PDF viewer
-
-- Phone heading now wraps in two intentional lines rather than three or more.
-- On phones, the map fits within the available embed viewport rather than forcing an additional scroll inside the map app. Squarespace must still give the iframe adequate height for the desired map size.
-- Removed About This Apparition, its description, and the external links below it on all devices; apparition descriptions remain in site-data.js for searching.
-- Removed the automatic scroll-to-map action when selecting an apparition on a phone, so the Squarespace page does not jump.
-- The existing desktop right-side PDF preview expands vertically to fill the space; mobile PDF and drawer controls remain intact.
-- Existing satellite / live Google / 3D globe views and the Marian markers remain unchanged. God's Eye View remains removed.
-
-# Sky Surfer — Marian Apparitions Map v1.43
-
-## v1.41: phone usability + removal of experimental fourth view
-
-- **God’s Eye View is completely removed**: the experimental fourth tab, remote iframe, bridge, installer and launcher, alternate globe styles, and related documentation are no longer included.
-- **Historical note (v1.39):** Three views were present at this stage. The Live Google Map tab was removed in v1.52; Marian Apparitions Map (Satellite / Street Map) and 3D Globe remain.
-- **Phone portrait and landscape only:** selecting a marker in the Sky Surfer map, or choosing an entry from the apparition list/directory, opens the existing information/PDF panel as a left-side drawer inside the map. It keeps part of the map visible and has an accessible close button.
-- **Phone fullscreen**: fullscreen is map-first, with the tall introduction hidden. The drawer opens from the left, including when the phone is rotated sideways. The PDF FULLSCREEN control still opens the existing in-page expanded viewer.
-- **Phone embedded view**: the same mobile drawer works inside a responsive iframe. The containing site's iframe must permit fullscreen for the fullscreen button to work. The iframe's own height is controlled by the containing page, not by this ZIP.
-- **Desktop stays unchanged**: the normal right-side information panel, search, map controls, and PDF viewer remain.
-
-Important limitation: Google's **Live Google My Maps** iframe controls its own pins and popups. Its pin clicks cannot directly open Sky Surfer's custom PDF drawer. To open Sky Surfer PDFs, use **Marian Apparitions Map**, **3D globe**, or the apparition list/directory.
-
-## Run locally
-
-1. Extract the entire ZIP, preserving the subfolders.
-2. Double-click `START_LOCAL_WINDOWS.bat` (requires Python 3) or host the static folder on GitHub Pages.
-3. Select an apparition in **Marian Apparitions Map** or **3D globe** to see its description and attached PDFs.
-
----
-
-# Sky Surfer — Marian Apparitions Map v1.30
-
-This is a clean testing version built from v1.25. It removes **all previous sample locations and their media files** from the delivered website and replaces them with three sample apparition entries and the three PDFs supplied for this test.
-
-## What is in this version
-
-- **Marian Apparitions Map** is the opening/default mode. It uses MapLibre and the existing EOxCloudless 2016 satellite layer (online), with optional OpenFreeMap **Street Map** and automatic 3D building shapes when zoomed in where data exists.
-- **Historical note (before v1.52):** Live Google Map used to load the Google My Maps project: `15WqbuRlgPoyjzpR8lw7uUsQUrV_0EW0`. It will display updated pins from Google if the map's sharing settings permit embedding, but Google-controlled map pins cannot trigger the separate Sky Surfer PDF panel. Use the left catalog or click Sky Surfer Explorer pins for the PDFs.
-- **3D globe** retains the MapLibre satellite atmosphere effect and offline fallback.
-- Search by location, country, city, historical year, or PDF name. Select a pin or catalog entry for a zoomable/pannable PDF viewer and a working **DOWNLOAD PDF** control.
-- Test PDFs: Fátima (2 pages), Guadalupe (1 page), Lourdes (1 page).
-
-**Location accuracy:** The map now uses the exact coordinates from the provided `Marian Apparitions Map.kml`, copied to `google-my-maps.kml`, not provisional positions. Each record shows its year and KML-exact coordinates; source URLs are retained privately in the site data for future maintenance.
-
-The three short historical descriptions are based on official Catholic shrine and Vatican sources, and their references are retained in the data but not displayed in the interface. They are maintained separately from the Google My Maps KML placeholder descriptions in `bindings.json` (`description_override`, `source_references`, and `year`). Future KML exports do not overwrite these researched descriptions.
-
-### v1.34 — fullscreen document overlay (compatible with whole-site fullscreen)
-- The **PDF FULLSCREEN** button now opens the *existing* PDF/image viewer in an in-page overlay inside the Sky Surfer experience. The overlay does not request browser fullscreen a second time, so the globe, map mode, selected apparition, and whole-site fullscreen remain intact.
-- Click **CLOSE VIEWER**, the dimmed backdrop, or press **Esc** to close the overlay and return to the same map and document details. While the map itself is in browser fullscreen, the first Esc closes only the PDF overlay, and the next Esc can leave map fullscreen.
-- Reuses the existing zoom, pan, continuous page navigation, first-page fit, pinch interactions, and download link. The original viewer is *moved and restored* rather than recreated; it continues working across desktop and phone portrait/landscape.
-- Apparition pin: restored the earlier blue/gold pin design and kept **only the top cross and M**, removing the bottom cross. The marker now uses a standard centered capital M rather than an extended M shape. All map modes continue to use `assets/marian-apparition-pin.svg`.
-- No apparition data, PDF attachments, map layers, or view-switch controls were removed.
-
-## Run it locally (Windows)
-
-1. Extract the ZIP into its own folder, including all subfolders.
-2. Double-click **`START_LOCAL_WINDOWS.bat`**. Python 3 is needed for the local server; it will open `http://localhost:8765/index.html`.
-3. The Marian Apparitions Map opens by default. Choose **3D Globe** for an alternate Earth view; use **Satellite / Street Map** within the Marian Apparitions Map.
-4. Click an apparition from the list or its custom Explorer marker to open the PDF. Scroll the mouse to zoom at the pointer, drag to pan, and use pinch gestures on phones. **DOWNLOAD PDF** saves the original file.
-
-Most of the PDF and illustrated globe features can also work when `index.html` is double-clicked directly, but MapLibre and remote imagery are more dependable over `localhost`. Internet is required for online map tiles and the live Google iframe.
-
-## Updating your apparition locations
-
-1. Edit the project at `https://www.google.com/maps/d/u/1/edit?mid=15WqbuRlgPoyjzpR8lw7uUsQUrV_0EW0&usp=sharing`.
-2. From Google My Maps, choose **Export to KML/KMZ → Entire map**, **uncheck** "Keep data up to date with network link KML," and choose **Export as KML**.
-3. Replace this project's `google-my-maps.kml` with the downloaded **full KML**. That updates the custom Explorer pins. Do not keep an old `google-earth.kml`—this build imports only the new `google-my-maps.kml`.
-4. Place associated documents in `media/`. Exact existing names are retained. If you add PDFs/images, edit `bindings.json` (keyed by the normalized location name) or rely on filename matching, then run `UPDATE_GLOBE_WINDOWS.bat`.
-5. That regenerates `site-data.js`, PDF previews in `assets/previews/`, and offline download sidecars in `downloads/`. If a renamed marker breaks its old ID association, update the matching entry in `bindings.json`.
-6. Commit the updated files to GitHub Pages. The included GitHub Actions workflow can regenerate site data from the KML and PDFs during a deployment.
-
-**Automatic live synchronization:** Only Google's *own embedded My Maps view* reflects your Google My Maps edits automatically. The Sky Surfer custom Explorer markers/search/PDF links require a fresh full KML export and regeneration. A shared map URL alone is not an authenticated My Maps data API.
-
-## Media and citations
-
-The three original user-supplied PDFs are stored in `media/` and displayed as continuous page previews; all previous testing PDFs are excluded. If the PDFs include third-party images, confirm that you have the necessary rights before making them public.
-
-Satellite maps, OpenFreeMap vector data, Google My Maps and the PDF documents are separate services/sources with distinct terms. Keep all legally required attributions visible and read `IMAGERY-LICENSING.md` before public publication. MapLibre source code being open source does not make satellite imagery or document illustrations public domain.
-
-
-## Future content editor (not yet built)
-
-A planned later enhancement is a local Marian Apparitions Manager for editing years, descriptions, sources, images, and PDF associations without manually editing `bindings.json`. For now, edit location positions in Google My Maps and regenerate from KML; the verified descriptions and sources remain in `bindings.json`. No editor is included in v1.30.
-
-
-### v1.32 refinements
-- Marian markers use the gold **M** design.
-- Clicking **Marian Apparitions Map** a second time collapses **Satellite / Street Map**; clicking it again expands the options without resetting the camera.
-- On first opening a PDF, the entire **first page** fits inside the preview regardless of its aspect ratio. The existing wheel zoom, drag pan, multipage navigation, and mobile pinch controls remain. The viewer's Reset/Fit button now restores first-page fit.
-
-
-### v1.41 — embedded mobile map and PDF usability
-- Removed the About This Apparition description block on desktop and mobile.
-- Made the document preview taller in desktop detail view while retaining the right panel.
-- Removed the automatic selection `scrollIntoView` so Squarespace does not jump the embedded page.
-- Shortened phone heading into two lines: “Explore Marian Apparitions / Around the World”.
-- Phone-only location selection zooms and keeps the marker in the visible RIGHT side of the map beside the left-side PDF drawer in portrait and landscape, including on rotation.
-- The Google My Maps iframe retains Google's own marker behavior; Sky Surfer's custom Explorer and Globe map markers use the PDF drawer.
-- The original three map views are retained; God's Eye View integration is not included.
-
-### v1.41 — mobile PDF panel & touch instructions
-- Kept the phone-only left slide-in panel and fixed the upper half: compact heading/location, accessible Street View link, two-row PDF controls with a small fullscreen icon, and document preview starts higher in the drawer.
-- Restored **Try the Street View**, opening Google Maps Street View near the selected apparition coordinates in a new tab (availability depends on Google coverage).
-- Removed mouse-only “drag / scroll” instructions from phone and embedded phone maps; desktop help remains unchanged.
-- Kept the three existing views, locally bundled PDFs, full-screen PDF overlay, desktop right-side panel, and existing phone auto-zoom behavior.
-
-
-## v1.46 — Header label restoration
-- Restore **MARIAN APPARITIONS** immediately after the linked gold diamond on wide desktop screens.
-- Keep the centered **MARIAN APPARITIONS ✧ STORIES OF FAITH** desktop heading; no duplicate Sky Surfer wordmark.
-- Preserve the label on narrow phone fullscreen layouts with tighter spacing.
-- Retain all v1.45 map border styling fixes, views, mobile drawer and PDF functionality.
-
-## v1.75 test — smoother Cesium globe and earlier names
-
-- Mobile Canvas2D distant Earth now targets a roughly 30 ms redraw interval during movement (previously 65 ms), with adaptive raster dimensions, reused pixel buffers and a higher-resolution bilinear-sampled frame after settling. Actual frame rate depends on the device.
-- Native Cesium camera inertia has been slightly increased for pan/rotation and zoom. Standard MapLibre globe behavior is unchanged.
-- Overview names fade in between 64% and 94% of the smaller map viewport dimension; 177 bundled Natural Earth country/territory label anchors and selected ocean names require no tile requests. Screen-space collision checks and horizon culling keep text readable.
-- At the existing mobile software/native handoff, OpenFreeMap cartography becomes eligible immediately, rather than waiting until 4.5 million meters altitude. Compatibility mode continues to suppress labels.
-- No change to imagery sources, photomesh streaming settings, 3D cube, credits, or the existing mobile black-globe safety path.
+The 3D Globe remains the default website view. Entering Marian Apparitions Map selects Street Map (white 3D buildings if enabled); the Satellite tab is still selectable. Reset in the flat map returns to Street Map. The explicit `?view=satellite` URL still opens Satellite. If the street style cannot load, Satellite is used as a fallback. Existing Street View embeds, sensor permissions and all other features remain unchanged.

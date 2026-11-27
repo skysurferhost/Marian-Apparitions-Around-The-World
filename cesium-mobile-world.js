@@ -27,6 +27,9 @@
    const cam=viewer.camera,p=cam.positionWC,d=cam.directionWC,r=cam.rightWC,u=cam.upWC,fr=cam.frustum;
    if(!p||!d||!r||!u||!Number.isFinite(fr.fovy)||fr.fovy<=0){hide();return false;}
    const w=viewer.scene.canvas.clientWidth,h=viewer.scene.canvas.clientHeight;if(!w||!h){hide();return false;}
+   const nav=window.SKY_SURFER_GLOBE_NAV;
+   const height=cam.positionCartographic?.height??Math.max(0,Math.hypot(p.x,p.y,p.z)-R);
+   const sun=nav?.viewLight(p,r,u,height);
    const sig=[p.x,p.y,p.z,d.x,d.y,d.z,u.x,u.y,u.z,fr.fovy,fr.aspectRatio,w,h,showNames,...Array.from(markers.values(),e=>String(e.show)+':'+String(e.billboard.scale?.getValue?.(viewer.clock.currentTime)??e.billboard.scale))].join('|');
    const now=performance.now(),same=last===sig;
    if(shown&&!dirty&&(same?(settled||now-at<100):now-at<30))return true;
@@ -43,7 +46,9 @@
     const hx=o.x+t*(bx+q*r.x),hy=o.y+t*(by+q*r.y),hz=clamp(o.z+t*(bz+q*r.z),-1,1);
     const fx=Math.atan2(hy,hx)*tx+tw*.5,fy=clamp(th*.5-Math.asin(hz)*ty,0,th-1),ix=Math.floor(fx)%tw,iy=Math.floor(fy),n=(j*fw+i)*4,k=(iy*tw+ix)*4;
     if(settled){const dx=fx-Math.floor(fx),dy=fy-iy,k2=(iy*tw+(ix+1)%tw)*4,k3=(Math.min(iy+1,th-1)*tw+ix)*4,k4=(Math.min(iy+1,th-1)*tw+(ix+1)%tw)*4;for(let ch=0;ch<3;ch++)out[n+ch]=(tex[k+ch]*(1-dx)+tex[k2+ch]*dx)*(1-dy)+(tex[k3+ch]*(1-dx)+tex[k4+ch]*dx)*dy;}
-    else{out[n]=tex[k];out[n+1]=tex[k+1];out[n+2]=tex[k+2];}out[n+3]=255;
+    else{out[n]=tex[k];out[n+1]=tex[k+1];out[n+2]=tex[k+2];}
+    if(sun&&showNames){const shade=nav.daylightShade(hx*sun.x+hy*sun.y+hz*sun.z,height);out[n]*=shade;out[n+1]*=shade;out[n+2]*=shade;}
+    out[n+3]=255;
    }}
    fc.putImageData(pix,0,0);
    const dpi=Math.min(1.5,window.devicePixelRatio||1),cw=Math.round(w*dpi),ch=Math.round(h*dpi);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}

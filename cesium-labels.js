@@ -66,7 +66,7 @@
  // Shared bounded decoded tile cache for cartography and optional 3D building geometry.
  const cache=new Map();
  function loadTile(C,x,y,z,request){const key=`${z}/${x}/${y}`;let promise=cache.get(key);if(promise){cache.delete(key);cache.set(key,promise);return promise;}
-  const url=source.replace('{z}',z).replace('{x}',x).replace('{y}',y),resource=new C.Resource({url,request});const download=resource.fetchArrayBuffer();if(download===undefined)return undefined;
+  const url=source.replace('{z}',z).replace('{x}',x).replace('{y}',y),resource=C?new C.Resource({url,request}):null;const download=resource?resource.fetchArrayBuffer():fetch(url).then(r=>{if(!r.ok)throw Error(`Vector tile HTTP ${r.status}`);return r.arrayBuffer();});if(download===undefined)return undefined;
   promise=Promise.resolve(download).then(parse);cache.set(key,promise);promise.catch(()=>{if(cache.get(key)===promise)cache.delete(key);});const limit=typeof matchMedia==='function'&&matchMedia('(max-width:800px)').matches?48:80;while(cache.size>limit)cache.delete(cache.keys().next().value);return promise;
  }
  function create(C){const scheme=new C.WebMercatorTilingScheme();const provider=new C.UrlTemplateImageryProvider({url:source,tilingScheme:scheme,tileWidth:SIZE,tileHeight:SIZE,hasAlphaChannel:true,maximumLevel:DISPLAY_MAX,credit:new C.Credit(credit,false),enablePickFeatures:false});

@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="description" content="Explore Marian apparitions around the world with satellite mapping and an interactive PDF viewer.">
   <title>Explore Marian Apparitions Around the World!</title>
-  <link rel="stylesheet" href="styles.css?v=1.52">
+  <link rel="stylesheet" href="styles.css?v=1.90">
   <script>
     // Restore the user's preferred appearance before the page becomes visible.
     try {
@@ -14,9 +14,9 @@
       if (savedTheme === 'day' || savedTheme === 'night') document.documentElement.dataset.theme = savedTheme;
     } catch (_) { /* Private/local browsing may disallow storage. */ }
   </script>
-<link rel="stylesheet" href="cesium-integrated.css?v=1.75">
+<link rel="stylesheet" href="cesium-integrated.css?v=1.90">
 </head>
-<body>
+<body data-view-mode="cesium">
   <div class="app-shell">
     <header class="topbar">
       <a class="brand brand-page-link" href="https://www.sky-surfer.com/marian-apparitions" target="_blank" rel="noopener noreferrer" aria-label="Visit the Marian Apparitions page on Sky Surfer (opens a new tab)">
@@ -62,13 +62,10 @@
         </div>
         <div class="list-heading"><span>APPARITIONS</span><span id="visibleCount">03 APPARITIONS</span></div>
         <div class="place-list" id="placeList" role="list" aria-live="polite"></div>
-        <div class="sidebar-bottom">
-          <span class="status-pulse"></span> Linked to your Google My Maps KML
-        </div>
       </aside>
 
-      <section class="globe-section satellite-active" id="mapSection" aria-label="Marian apparitions satellite map and 3D globe">
-        <div id="satelliteMap" class="satellite-map" role="region" aria-label="MapLibre satellite Explorer with clickable apparition markers">
+      <section class="globe-section cesium-active" id="mapSection" aria-label="Marian apparitions satellite map and 3D globe">
+        <div id="satelliteMap" class="satellite-map" hidden role="region" aria-label="MapLibre satellite Explorer with clickable apparition markers">
           <div id="mapLibreCanvas" class="maplibre-canvas" aria-label="Interactive geographic map"></div>
           <div id="mapNotice" class="map-notice" hidden role="status"></div>
           <div id="mapDiagnostic" class="map-diagnostic" hidden>
@@ -78,43 +75,30 @@
               <button type="button" id="mapCopyDiagnostic">Copy diagnostics</button>
             </div>
           </div>
-          <div class="map-credits" id="mapCredits">EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016)</div>
+          <div class="map-credits" id="mapCredits" hidden></div>
         </div>
         <canvas id="stars" aria-hidden="true"></canvas>
-        <div class="globe-top-label" id="viewModeLabel"><span class="live-dot"></span> MARIAN APPARITIONS MAP <span class="globe-top-separator">/</span> v1.75 TEST</div>
         <div class="view-switch" aria-label="Map view mode">
           <div class="view-switch-middle">
-          <button class="view-tab active" id="satelliteViewBtn" type="button" aria-pressed="true" aria-controls="explorerStyleSwitch" aria-expanded="true">Marian Apparitions Map</button>
+          <button class="view-tab" id="satelliteViewBtn" type="button" aria-pressed="false" aria-controls="explorerStyleSwitch" aria-expanded="false">Marian Apparitions Map</button>
           <div class="explorer-style-switch" id="explorerStyleSwitch" hidden aria-label="Explorer basemap selection">
-            <button type="button" id="satelliteBasemapBtn" class="basemap-tab active" aria-pressed="true">Satellite</button>
-            <button type="button" id="streetsBasemapBtn" class="basemap-tab" aria-pressed="false" title="View OpenFreeMap streets; 3D buildings automatically appear as you zoom closer">Street Map</button>
+            <button type="button" id="satelliteBasemapBtn" class="basemap-tab" aria-pressed="false">Satellite</button>
+            <button type="button" id="streetsBasemapBtn" class="basemap-tab active" aria-pressed="true" title="Street Map with optional white 3D buildings">Street Map</button>
           </div>
           </div>
-          <button class="view-tab" id="globeViewBtn" type="button" aria-pressed="false">3D Globe</button>
-          <button class="view-tab" id="cesiumViewBtn" type="button" aria-pressed="false" aria-controls="cesiumView">Cesium 3D Globe</button>
+          <button class="view-tab active" id="cesiumViewBtn" type="button" aria-pressed="true" aria-controls="cesiumView">3D Globe</button>
 
         </div>
-        <div id="cesiumView" hidden role="region" aria-label="Interactive Cesium globe">
+        <div id="cesiumView" role="region" aria-label="Interactive 3D globe">
           <div id="cesiumEarth" aria-label="Interactive Cesium Earth"></div>
           <canvas id="cesiumMobileWorld" hidden aria-hidden="true"></canvas>
+          <div id="celestialPlanets" hidden aria-hidden="true"></div>
           <div id="cesiumStatus" role="status">Starting CesiumJS…</div>
           <div id="cesiumFailure" hidden role="alert"><strong>Cesium could not start</strong><p id="cesiumReason"></p><p>If the library failed to load, run INSTALL_CESIUM_WINDOWS.bat and reopen the project.</p><button type="button" id="cesiumRetry">Retry Cesium</button> <button type="button" id="cesiumReturn">Return to map</button></div>
           <div id="cesiumMeshCredit" hidden></div>
-          <details id="cesiumDiagnostics"><summary>Cesium diagnostics</summary><pre id="cesiumLog"></pre><p id="cesiumSourceCredit"></p><button type="button" id="cesiumCopy">Copy diagnostics</button> <button type="button" id="cesiumCompatibility" aria-pressed="false">Use compatibility imagery</button></details>
+          <div id="cesiumDiagnostics" hidden inert aria-hidden="true" style="display:none!important"><pre id="cesiumLog"></pre><p id="cesiumSourceCredit"></p><button type="button" id="cesiumCopy">Copy diagnostics</button> <button type="button" id="cesiumCompatibility" aria-pressed="false">Use compatibility imagery</button></div>
         </div>
-        <div class="globe-area" id="globeArea">
-          <div class="outer-glow"></div>
-          <canvas id="globe" aria-label="Drag to rotate the Earth and scroll to zoom" tabindex="0"></canvas>
-          <!-- Experimental MapLibre satellite globe with atmosphere. The existing local globe
-               remains visible until this layer successfully loads, and is a fallback offline. -->
-          <div id="mapLibreGlobeCanvas" class="maplibre-globe-canvas" hidden aria-label="Interactive satellite globe with atmosphere"></div>
-          <div id="mapLibreGlobeCredit" class="maplibre-globe-credit" hidden>
-            <a href="https://cloudless.eox.at/" target="_blank" rel="noopener noreferrer">EOxCloudless</a> 2016 imagery · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
-          </div>
-          <div class="globe-markers" id="globeMarkers"></div>
-        </div>
-
-        <div class="globe-help" id="globeHelp"><span class="hand-icon">↔</span> DRAG TO PAN <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER</div>
+        <div class="globe-help" id="globeHelp"><span class="hand-icon">↔</span> DRAG TO ROTATE <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> WASD / ARROWS TO MOVE</div>
         <div class="globe-controls" aria-label="Map and globe controls">
           <button type="button" id="globeZoomIn" aria-label="Zoom globe in" title="Zoom in">+</button>
           <button type="button" id="globeZoomOut" aria-label="Zoom globe out" title="Zoom out">−</button>
@@ -133,7 +117,12 @@
         <div class="location-coords" id="placeLocation"></div>
         <div class="location-coords location-coordinate-line" id="placeCoords"></div>
         <div class="thin-divider"></div>
-        <div class="media-section-label"><span>IMAGE & PDF VIEWER</span><span id="mediaCounter">—</span></div>
+        <div class="media-section-label viewer-mode-heading">
+          <div class="viewer-mode-switch" role="group" aria-label="Apparition viewer">
+            <button id="imageViewerTab" type="button" aria-pressed="true" aria-controls="viewerBox emptyMedia">IMAGE VIEWER</button>
+            <button id="streetViewerTab" type="button" aria-pressed="false" aria-controls="streetViewer">STREET VIEWER</button>
+          </div><span id="mediaCounter">—</span>
+        </div>
 
         <div id="emptyMedia" class="empty-media" hidden>
           <div class="empty-icon">▧</div>
@@ -167,9 +156,18 @@
             <a id="openOriginal" href="#" download aria-label="Download the selected document">DOWNLOAD PDF</a>
           </div>
         </div>
-        <div class="street-view-footer">
-          <a id="streetViewLink" class="street-view-link" href="https://www.google.com/maps/" target="_blank" rel="noopener noreferrer" aria-label="Street View near this apparition (opens Google Maps in a new tab)"><span aria-hidden="true">◉</span> Street View <span aria-hidden="true">↗</span></a>
-        </div>
+        <section id="streetViewer" class="street-viewer" aria-label="Street viewer" hidden>
+          <div class="street-viewer-toolbar">
+            <button id="streetReload" type="button" title="Reload Google panorama" aria-label="Reload Google panorama" disabled>↻ <span>RELOAD</span></button>
+            <button id="streetFullscreen" class="viewer-fullscreen-btn" type="button" aria-pressed="false" aria-expanded="false" aria-haspopup="dialog" aria-controls="mediaOverlay" title="Expand Street Viewer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg><span id="streetFullscreenLabel">FULLSCREEN</span></button>
+          </div>
+          <iframe id="streetViewerFrame" title="Interactive Google Street View" allow="accelerometer https://www.google.com; gyroscope https://www.google.com; magnetometer https://www.google.com; fullscreen 'none'" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
+          <div id="streetViewerUnavailable" class="street-viewer-message" hidden>
+            <strong>Google Street View</strong>
+            <p>An embedded panorama is not available for this location yet. You can still explore it in Google Maps using the link below.</p>
+          </div>
+          <div class="street-viewer-footer"><span id="streetTrialHint" hidden>If the panorama stays black, reload or open it in Google. A Google-generated embed may be needed.</span><a id="streetViewLink" href="https://www.google.com/maps/" target="_blank" rel="noopener noreferrer">Open in Google Street View ↗</a></div>
+        </section>
       </aside>
     </main>
     <!-- The document viewer is moved into this overlay (not recreated) so that it
@@ -203,19 +201,24 @@
   </div>
   <script src="country-codes.js"></script>
   <script src="site-data.js"></script>
-  <script src="globe-texture.js"></script>
   <script src="download-manifest.js"></script>
-  <script src="app.js?v=1.75"></script>
+  <script src="street-view-config.js?v=1.90"></script>
+  <script src="street-view.js?v=1.90"></script>
+  <script src="app.js?v=1.90"></script>
   <script src="pdf-download.js"></script>
   
-  <script src="imagery-keys.js?v=1.75"></script>
-  <script src="cesium-labels.js?v=1.75"></script>
-  <script src="cesium-buildings.js?v=1.75"></script>
-  <script src="photomesh-config.js?v=1.75"></script>
-  <script src="cesium-photomesh.js?v=1.75"></script>
-  <script src="cesium-world-names.js?v=1.75"></script>
-  <script src="cesium-mobile-world.js?v=1.75"></script>
-  <script src="cesium-integrated.js?v=1.75"></script>
-  <script src="maplibre-explorer.js?v=1.75"></script>
+  <script src="imagery-keys.js?v=1.90"></script>
+  <script src="regional-imagery.js?v=1.90"></script>
+  <script src="cesium-labels.js?v=1.90"></script>
+  <script src="cesium-buildings.js?v=1.90"></script>
+  <script src="photomesh-config.js?v=1.90"></script>
+  <script src="cesium-photomesh.js?v=1.90"></script>
+  <script src="cesium-world-names.js?v=1.90"></script>
+  <script src="globe-navigation.js?v=1.90"></script>
+  <script src="cesium-mobile-world.js?v=1.90"></script>
+  <script src="celestial-planets.js?v=1.90"></script>
+  <script src="cesium-integrated.js?v=1.90"></script>
+  <script src="map-detail.js?v=1.90"></script>
+  <script src="maplibre-explorer.js?v=1.90"></script>
 </body>
 </html>

@@ -47,8 +47,16 @@
 }
 
 /* v1.73: Cesium-only geometry switch, never a camera command. */
-#cesiumBuildingsToggle[hidden], .globe-section:not(.cesium-active) #cesiumBuildingsToggle{display:none!important;}
+#cesiumBuildingsToggle[hidden]{display:none!important;}
 #cesiumBuildingsToggle[aria-pressed="true"]{background:rgba(222,184,119,.19);color:#f5d49a;}
 #cesiumBuildingsToggle[aria-pressed="false"]{color:#9ab0ba;}
 #cesiumBuildingsToggle:disabled{opacity:.4;cursor:default;}
 #cesiumBuildingsToggle svg{flex:none;pointer-events:none;}
+
+/* Production map and globe share the cube. */
+#mapCredits[hidden]{display:none!important;}
+#mapLibreCanvas .maplibregl-ctrl-attrib{font-size:10px;}
+/* Small decorative sky objects; never intercept the globe's inputs. */
+#celestialPlanets{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+#celestialPlanets[hidden],#celestialPlanets .sky-planet[hidden]{display:none!important;}
+.sky-planet{position:absolute;top:0;left:0;pointer-events:none;image-rendering:auto;}

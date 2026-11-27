@@ -1,23 +1,12 @@
-/* Sky Surfer Marian Apparitions Map — no frameworks, APIs, or network connections required. */
+/* Sky Surfer Marian Apparitions Map — directory, markers, PDF viewer and interface. */
 (() => {
   'use strict';
   const D = window.SKY_SURFER_DATA || {locations:[]};
   const locations = D.locations || [];
   const $ = id => document.getElementById(id);
   const clamp = (v,min,max)=>Math.min(max,Math.max(min,v));
-  const rad = Math.PI/180;
-  const PI = Math.PI;
-  const state = {yaw:-98*rad,pitch:39*rad,zoom:1.0,search:'',selected:null,fly:null,globeDragging:false,pointer:null,justDragged:false,mediaIndex:0,mediaZoom:1,mediaPanX:0,mediaPanY:0,stageDragging:false,stagePointer:null,pinching:false,pinchStart:0,pinchZoom:1};
+  const state = {search:'',selected:null,viewerMode:'image',pointer:null,justDragged:false,mediaIndex:0,mediaZoom:1,mediaPanX:0,mediaPanY:0,stageDragging:false,stagePointer:null,pinching:false,pinchStart:0,pinchZoom:1};
   const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let globeGL=null,globeProgram=null,globeData=null,globeW=0,globeH=0,globeRadius=0,globeCenterX=0,globeCenterY=0,sceneDirty=true;
-  // WebGL is optional: draw an actual textured, orthographic Earth on a 2D
-  // canvas when graphics acceleration, WebGL, or shader compilation is blocked.
-  let softwareCanvas=null,softwareContext=null,softwareEarth=null,softwareLastFrame=0;
-  let webGLFirstDraw=true;
-  const softwareFrame=document.createElement('canvas');
-  const softwareFrameCtx=softwareFrame.getContext('2d',{willReadFrequently:true});
-  let softwareEarthPixels=null,softwareEarthW=0,softwareEarthH=0;
-  const buttons = new Map();
   // UI day/night theme; the satellite tiles and PDF pages retain their original colors.
   // Night is the default, and the choice persists when browser storage is available.
   const themeButton = $('themeToggle');
@@ -158,7 +147,7 @@
       const chev=document.createElement('span');chev.className='place-chevron';chev.textContent='›';
       info.append(name,sub);btn.append(index,info,chev);btn.addEventListener('click',()=>selectLocation(p,true));container.append(btn);
     }
-    renderMarkers();
+
     window.SKY_SURFER_MAP?.refresh?.();
   }
   // Country directory uses the same apparition records as Explorer, so edits to
@@ -287,7 +276,7 @@
     if(!$('mediaOverlay').hidden){
       if(e.key==='Tab'){trapMediaOverlayFocus(e);return;}
       if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')e.preventDefault();
-      if(state.selected&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();changeMedia(e.key==='ArrowRight'?1:-1);}
+      if(expandedViewer==='image'&&state.selected&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();changeMedia(e.key==='ArrowRight'?1:-1);}
       return;
     }
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('search').focus();$('search').select();}
@@ -295,45 +284,67 @@
     if(e.key==='Escape'&&document.fullscreenElement){document.exitFullscreen();}
     else if(e.key==='Escape'&&state.selected){closePanel();}
     if(e.target instanceof HTMLInputElement)return;
-    if(state.selected && (e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();changeMedia(e.key==='ArrowRight'?1:-1);}
+    if(state.selected && state.viewerMode==='image' && (e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();changeMedia(e.key==='ArrowRight'?1:-1);}
   });
   // The sidebar and the popup directory share exactly one browse mode.
   $('showAll').addEventListener('click',()=>setDirectoryMode('country'));
   $('showDocs').addEventListener('click',()=>setDirectoryMode('timeline'));
-  function smooth(a,b,t){return a+(b-a)*t;}
-  function shortestAngle(from,to){return from+Math.atan2(Math.sin(to-from),Math.cos(to-from));}
-  function flyTo(p){
-    // Phone-only: automatically zoom the fallback globe so the selected shrine
-    // remains easy to locate in the uncovered map area beside the left PDF drawer.
-    if(phoneDrawer)state.zoom=Math.max(state.zoom,1.28);
-    const targetYaw=p.lng*rad, targetPitch=clamp(p.lat*rad,-1.36,1.36);
-    state.fly=reducedMotion?null:{start:performance.now(),dur:820,fromYaw:state.yaw,toYaw:shortestAngle(state.yaw,targetYaw),fromPitch:state.pitch,toPitch:targetPitch};
-    if(reducedMotion){state.yaw=targetYaw;state.pitch=targetPitch;sceneDirty=true;renderMarkers();}
-  }
   function selectLocation(p){
-    state.selected=p; flyTo(p);window.SKY_SURFER_MAP?.select?.(p);openDetailPanel();
+    if(!$('mediaOverlay').hidden)closeMediaOverlay();
+    state.selected=p;window.SKY_SURFER_MAP?.select?.(p);openDetailPanel();
     $('placeTitle').textContent=p.displayName || p.name;
     $('placeLocation').textContent=[p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ');
     $('placeCoords').textContent=labelCoords(p);
-    // Google Maps Street View panorama near the selected coordinates. Coverage is
-    // determined by Google; the link does not imply a panorama exists at the shrine.
-    const streetView=$('streetViewLink');
-    streetView.href='https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+encodeURIComponent(`${p.lat},${p.lng}`);
-    streetView.title='Open Google Street View near '+(p.displayName||p.name);
     const fileCount=new Set((p.media||[]).map(m=>m.src)).size;
     const pageCount=(p.media||[]).filter(m=>m.type==='pdf').length;
     $('mediaCounter').textContent=fileCount?`${fileCount} FILE${fileCount===1?'':'S'}${pageCount?' · '+pageCount+' PDF PAGE'+(pageCount===1?'':'S'):''}`:'0 FILES';
-    $('emptyMedia').hidden=Boolean(p.media?.length);$('viewerBox').hidden=!p.media?.length;
     state.mediaIndex=0;
+    setViewerMode('image',true);
     if(p.media?.length)renderMedia();
     buildPlaces();
     window.requestAnimationFrame(resize);
     // Do not scroll the containing Squarespace page/iframe on marker or list selection.
     // The side drawer overlays the visible map without changing the viewport.
   }
+  function clearStreetViewer(){
+    const frame=$('streetViewerFrame');
+    frame.removeAttribute('src');frame.hidden=true;
+    $('streetReload').disabled=true;$('streetTrialHint').hidden=true;
+    $('streetViewer').hidden=true;
+  }
+  function setViewerMode(mode,initial=false){
+    if(!state.selected)return;
+    if(!initial&&mode===state.viewerMode)return;
+    if(!$('mediaOverlay').hidden)closeMediaOverlay();
+    const street=mode==='street';
+    state.viewerMode=street?'street':'image';
+    $('imageViewerTab').setAttribute('aria-pressed',String(!street));
+    $('streetViewerTab').setAttribute('aria-pressed',String(street));
+    $('mediaCounter').hidden=street;
+    const hasMedia=Boolean(state.selected.media?.length);
+    if(street){
+      if(!viewer.ready)++viewer.generation;
+      $('viewerBox').hidden=true;$('emptyMedia').hidden=true;
+      const urls=window.SKY_SURFER_STREET_VIEW.urls(state.selected,window.SKY_SURFER_STREET_VIEW_CONFIG);
+      const frame=$('streetViewerFrame');
+      $('streetViewLink').href=urls.external||'https://www.google.com/maps/';
+      $('streetViewer').hidden=false;
+      $('streetViewerUnavailable').hidden=Boolean(urls.embed);
+      frame.hidden=!urls.embed;
+      $('streetReload').disabled=!urls.embed;$('streetTrialHint').hidden=!urls.trial;
+      if(urls.embed)frame.src=urls.embed;else frame.removeAttribute('src');
+    }else{
+      clearStreetViewer();
+      $('viewerBox').hidden=!hasMedia;$('emptyMedia').hidden=hasMedia;
+      if(!initial&&hasMedia){if(!viewer.ready)renderMedia();else requestAnimationFrame(resizeMediaViewer);}
+    }
+  }
+  $('imageViewerTab').addEventListener('click',()=>setViewerMode('image'));
+  $('streetViewerTab').addEventListener('click',()=>setViewerMode('street'));
   function closePanel(){
     if(!$('mediaOverlay').hidden)closeMediaOverlay();
     const previous=state.selected;
+    clearStreetViewer();state.viewerMode='image';
     state.selected=null;
     window.SKY_SURFER_MAP?.select?.(null);
     hideDetailPanel();buildPlaces();window.requestAnimationFrame(resize);
@@ -352,7 +363,7 @@
   let mapMultiTouch = false;
   function isBareMapTarget(target){
     if(!(target instanceof Element))return false;
-    if(!target.closest('#mapLibreCanvas, #mapLibreGlobeCanvas, #globe, #globeArea'))return false;
+    if(!target.closest('#mapLibreCanvas, #cesiumEarth'))return false;
     return !target.closest('button, a, iframe, input, .sat-pin, .map-marker, .maplibregl-marker, .maplibregl-control-container, .globe-controls, .view-switch, .explorer-style-switch, .info-panel, .map-notice, .map-diagnostic, .map-credits, .maplibre-globe-credit, .globe-top-label');
   }
   mapTapSurface.addEventListener('pointerdown',e=>{
@@ -414,7 +425,7 @@
     $('mediaNext').disabled=idx===viewer.pages.length-1;
   }
   function drawViewer(){
-    if(!viewer.ready)return;
+    if(!viewer.ready||state.viewerMode!=='image'||!stage.clientWidth||!stage.clientHeight)return;
     clampPan();
     strip.style.transform=`translate3d(${viewer.panX}px,${viewer.panY}px,0) scale(${viewer.zoom})`;
     $('zoomLabel').textContent=`${Math.round(viewer.zoom*100)}%`;
@@ -515,9 +526,28 @@
   const viewerBox=$('viewerBox');
   const viewerHome=viewerBox.parentNode;
   const viewerHomeNext=viewerBox.nextSibling;
-  let previousMediaFocus=null;
+  const streetBox=$('streetViewer');
+  const streetHome=streetBox.parentNode;
+  const streetHomeNext=streetBox.nextSibling;
+  let previousMediaFocus=null,expandedViewer=null;
+  // State-preserving DOM moves retain the iframe's browsing context on modern Chromium.
+  // Older browsers reload the same panorama after a conventional DOM reparent.
+  function moveStreet(parent,next=null){
+    if(typeof parent.moveBefore==='function'){
+      try{parent.moveBefore(streetBox,next);return;}catch(_){}
+    }
+    parent.insertBefore(streetBox,next);
+  }
+  function updateStreetOverlayButton(){
+    const active=expandedViewer==='street'&&!mediaOverlay.hidden;
+    const b=$('streetFullscreen');
+    $('streetFullscreenLabel').textContent=active?'CLOSE VIEWER':'FULLSCREEN';
+    b.setAttribute('aria-label',active?'Close expanded Street Viewer':'Expand Street Viewer');
+    b.setAttribute('aria-pressed',String(active));b.setAttribute('aria-expanded',String(active));
+    b.title=active?'Return to map and apparition details':'Expand Street Viewer over the map';
+  }
   function updateMediaOverlayButton(){
-    const active=!mediaOverlay.hidden;
+    const active=expandedViewer==='image'&&!mediaOverlay.hidden;
     $('mediaFullscreenLabel').textContent=active?'CLOSE VIEWER':'FULLSCREEN';
     $('mediaFullscreen').setAttribute('aria-label',active?'Close expanded document viewer':'Open expanded document viewer');
     $('mediaFullscreen').setAttribute('aria-pressed',String(active));
@@ -533,30 +563,34 @@
       if(!viewer.userAdjusted)fitFirstMediaPage();
     });
   }
-  function openMediaOverlay(){
-    if(!mediaOverlay.hidden || viewerBox.hidden)return;
-    previousMediaFocus=document.activeElement;
-    mediaOverlayDialog.appendChild(viewerBox);
+  function openMediaOverlay(kind='image'){
+    const street=kind==='street';
+    if(!mediaOverlay.hidden || (street?streetBox.hidden:viewerBox.hidden))return;
+    previousMediaFocus=document.activeElement;expandedViewer=kind;
+    mediaOverlay.setAttribute('aria-label',street?'Expanded Street Viewer':'Expanded document viewer');
+    if(street)moveStreet(mediaOverlayDialog);else mediaOverlayDialog.appendChild(viewerBox);
     mediaOverlay.hidden=false;
     document.body.classList.add('media-overlay-open');
-    updateMediaOverlayButton();
-    updateMediaOverlayLayout();
-    $('mediaFullscreen').focus({preventScroll:true});
+    updateMediaOverlayButton();updateStreetOverlayButton();
+    if(!street)updateMediaOverlayLayout();
+    $(street?'streetFullscreen':'mediaFullscreen').focus({preventScroll:true});
   }
   function closeMediaOverlay(){
     if(mediaOverlay.hidden)return;
     // Hide before restoring the viewer to prevent a flash in the original panel.
     mediaOverlay.hidden=true;
-    viewerHome.insertBefore(viewerBox,viewerHomeNext);
+    const street=expandedViewer==='street';
+    if(street)moveStreet(streetHome,streetHomeNext);else viewerHome.insertBefore(viewerBox,viewerHomeNext);
+    expandedViewer=null;
     document.body.classList.remove('media-overlay-open');
-    updateMediaOverlayButton();
-    updateMediaOverlayLayout();
-    const returnFocus=previousMediaFocus?.isConnected?previousMediaFocus:$('mediaFullscreen');
+    updateMediaOverlayButton();updateStreetOverlayButton();
+    if(!street)updateMediaOverlayLayout();
+    const returnFocus=previousMediaFocus?.isConnected?previousMediaFocus:$(street?'streetFullscreen':'mediaFullscreen');
     if(returnFocus?.focus)requestAnimationFrame(()=>returnFocus.focus({preventScroll:true}));
     previousMediaFocus=null;
   }
   function trapMediaOverlayFocus(e){
-    const controls=Array.from(mediaOverlayDialog.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+    const controls=Array.from(mediaOverlayDialog.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),iframe,[tabindex]:not([tabindex="-1"])'))
       .filter(el=>!el.hidden && el.getClientRects().length);
     if(!controls.length){e.preventDefault();return;}
     const first=controls[0],last=controls[controls.length-1];
@@ -567,7 +601,13 @@
     if(mediaOverlay.hidden)openMediaOverlay();else closeMediaOverlay();
   });
   $('mediaOverlayBackdrop').addEventListener('click',closeMediaOverlay);
-  updateMediaOverlayButton();
+  $('streetFullscreen').addEventListener('click',()=>{
+    if(mediaOverlay.hidden)openMediaOverlay('street');else closeMediaOverlay();
+  });
+  $('streetReload').addEventListener('click',()=>{
+    const frame=$('streetViewerFrame');const src=frame.getAttribute('src');if(src)frame.src=src;
+  });
+  updateMediaOverlayButton();updateStreetOverlayButton();
   // Mouse wheel / trackpad: zoom exactly at the pointer like the Rosary viewer.
   // Shift + wheel or a horizontal trackpad gesture pans left/right instead.
   stage.addEventListener('wheel',e=>{
@@ -673,6 +713,7 @@
   function resizeMediaViewer(){
     if(!viewer.ready)return;
     const sw=stage.clientWidth,sh=stage.clientHeight;
+    if(state.viewerMode!=='image'||!sw||!sh)return;
     const newWidth=Math.max(200,Math.min(sw-28,800));
     if(viewer.stageW && Math.abs(newWidth-viewer.baseW)>2){
       const ratio=newWidth/viewer.baseW;
@@ -700,237 +741,8 @@
   }
   if(window.ResizeObserver)new ResizeObserver(resizeMediaViewer).observe(stage);
 
-  function activateSoftwareGlobe(reason){
-    if(softwareContext)return;
-    console.warn('Sky Surfer: using offline software globe ('+reason+').');
-    const fallback=document.createElement('canvas');
-    fallback.setAttribute('aria-hidden','true');fallback.className='software-globe';
-    $('globe').after(fallback);
-    softwareCanvas=fallback;
-    softwareContext=fallback.getContext('2d',{alpha:true});
-    if(!softwareContext)return;
-    const img=new Image();
-    img.onload=()=>{
-      // Reduce the source size for quick software sampling; keeps all imagery local.
-      const source=document.createElement('canvas');
-      source.width=1200;source.height=600;
-      const sourceCtx=source.getContext('2d',{willReadFrequently:true});
-      sourceCtx.drawImage(img,0,0,source.width,source.height);
-      softwareEarth=img;softwareEarthW=source.width;softwareEarthH=source.height;
-      softwareEarthPixels=sourceCtx.getImageData(0,0,source.width,source.height).data;
-      sceneDirty=true;
-    };
-    img.onerror=()=>{
-      // The included file works even if a browser blocks an embedded data URL.
-      if(!img.dataset.retried){img.dataset.retried='1';img.src='assets/earth-illustrated.webp';}
-    };
-    img.src=window.SKY_SURFER_EARTH_TEXTURE || 'assets/earth-illustrated.webp';
-    sceneDirty=true;
-  }
-  function drawSoftwareGlobe(){
-    if(!softwareContext||!softwareCanvas||!globeW||!globeH)return;
-    const c=softwareCanvas,ctx=softwareContext,dpr=c.width/globeW;
-    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);
-    const cx=globeCenterX*dpr,cy=globeCenterY*dpr,r=globeRadius*dpr;
-    // Always render a clearly visible planet, even before its texture is decoded.
-    if(!softwareEarthPixels){
-      const g=ctx.createRadialGradient(cx-r*.24,cy-r*.30,r*.06,cx,cy,r);
-      g.addColorStop(0,'#4c8993');g.addColorStop(.72,'#1c5368');g.addColorStop(1,'#09212e');
-      ctx.beginPath();ctx.arc(cx,cy,r,0,2*PI);ctx.fillStyle=g;ctx.fill();
-      return;
-    }
-    // Render at a bounded resolution then scale the disk for responsive performance.
-    const size=Math.max(260,Math.min(430,Math.round(globeRadius*1.36)));
-    if(softwareFrame.width!==size||softwareFrame.height!==size){softwareFrame.width=size;softwareFrame.height=size;}
-    const data=softwareFrameCtx.createImageData(size,size),dst=data.data;
-    const cyaw=Math.cos(state.yaw),syaw=Math.sin(state.yaw);
-    const cpitch=Math.cos(state.pitch),spitch=Math.sin(state.pitch);
-    const rightX=-syaw,rightZ=cyaw,upX=-spitch*cyaw,upY=cpitch,upZ=-spitch*syaw;
-    const frontX=cpitch*cyaw,frontY=spitch,frontZ=cpitch*syaw;
-    const invR=2/size;
-    for(let j=0;j<size;j++){
-      const y=1-(j+.5)*invR;
-      for(let i=0;i<size;i++){
-        const x=(i+.5)*invR-1;
-        const r2=x*x+y*y;
-        if(r2>=1)continue;
-        const z=Math.sqrt(1-r2);
-        const wx=rightX*x+upX*y+frontX*z;
-        const wy=upY*y+frontY*z;
-        const wz=rightZ*x+upZ*y+frontZ*z;
-        let u=(Math.atan2(wz,wx)/(2*PI)+.5)*softwareEarthW;
-        const v=(.5-Math.asin(Math.max(-1,Math.min(1,wy)))/PI)*softwareEarthH;
-        u=((Math.floor(u)%softwareEarthW)+softwareEarthW)%softwareEarthW;
-        const sy=Math.min(softwareEarthH-1,Math.max(0,Math.floor(v)));
-        const si=(sy*softwareEarthW+u)*4,di=(j*size+i)*4;
-        const diffuse=Math.max(0,-.52*x+.72*y+z);
-        const shade=.25+.78*diffuse;
-        const rim=(1-z)*(1-z)*.38;
-        dst[di]=Math.min(255,softwareEarthPixels[si]*shade+30*rim);
-        dst[di+1]=Math.min(255,softwareEarthPixels[si+1]*shade+97*rim);
-        dst[di+2]=Math.min(255,softwareEarthPixels[si+2]*shade+130*rim);
-        dst[di+3]=255;
-      }
-    }
-    softwareFrameCtx.putImageData(data,0,0);
-    ctx.shadowBlur=25*dpr;ctx.shadowColor='rgba(63,167,204,.38)';
-    ctx.drawImage(softwareFrame,cx-r,cy-r,r*2,r*2);
-    ctx.shadowBlur=0;
-    ctx.beginPath();ctx.arc(cx,cy,r+.5*dpr,0,2*PI);
-    ctx.strokeStyle='rgba(133,199,216,.32)';ctx.lineWidth=1.7*dpr;ctx.stroke();
-  }
-  function makeWebGL(){
-    const canvas=$('globe');
-    let gl;
-    try{gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false})||canvas.getContext('experimental-webgl');}
-    catch(err){activateSoftwareGlobe('WebGL context error');return;}
-    if(!gl){activateSoftwareGlobe('WebGL unavailable');return;}
-    const vsrc=`attribute vec2 a_xy; void main(){gl_Position=vec4(a_xy,0.,1.);}`;
-    const fsrc=`precision highp float;
-      uniform sampler2D u_tex;
-      uniform vec2 u_center;
-      uniform float u_radius,u_yaw,u_pitch;
-      const float PI=3.141592653589793;
-      void main(){
-        vec2 xy=(gl_FragCoord.xy-u_center)/u_radius;
-        float r2=dot(xy,xy);
-        if(r2>=1.0) discard;
-        float z=sqrt(1.0-r2);
-        float sy=sin(u_yaw),cy=cos(u_yaw),sp=sin(u_pitch),cp=cos(u_pitch);
-        vec3 right=vec3(-sy,0.,cy);
-        vec3 up=vec3(-sp*cy,cp,-sp*sy);
-        vec3 front=vec3(cp*cy,sp,cp*sy);
-        vec3 world=right*xy.x+up*xy.y+front*z;
-        float lon=atan(world.z,world.x),lat=asin(clamp(world.y,-1.,1.));
-        vec2 uv=vec2(lon/(2.0*PI)+0.5,lat/PI+0.5);
-        vec3 earth=texture2D(u_tex,uv).rgb;
-        vec3 light=normalize(vec3(-0.52,0.72,1.0));
-        float diffuse=max(0.0,dot(normalize(vec3(xy,z)),light));
-        float shade=0.23+0.85*diffuse;
-        float rim=pow(1.0-z,2.0);
-        vec3 color=earth*shade + vec3(0.07,0.24,0.29)*rim*0.70;
-        gl_FragColor=vec4(color,1.0);
-      }`;
-    function shader(type,src){const sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh;}
-    try{
-      const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vsrc));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fsrc));gl.linkProgram(pr);
-      if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(pr));gl.useProgram(pr);
-      const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
-      const att=gl.getAttribLocation(pr,'a_xy');gl.enableVertexAttribArray(att);gl.vertexAttribPointer(att,2,gl.FLOAT,false,0,0);
-      globeData={center:gl.getUniformLocation(pr,'u_center'),radius:gl.getUniformLocation(pr,'u_radius'),yaw:gl.getUniformLocation(pr,'u_yaw'),pitch:gl.getUniformLocation(pr,'u_pitch')};
-      const sampler=gl.getUniformLocation(pr,'u_tex');gl.uniform1i(sampler,0);
-      const texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([21,77,88,255]));
-      const img=new Image();
-      img.onload=()=>{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);sceneDirty=true;};
-      img.onerror=()=>{if(!img.dataset.retried){img.dataset.retried='1';img.src='assets/earth-illustrated.webp';}};
-      img.src=window.SKY_SURFER_EARTH_TEXTURE || 'assets/earth-illustrated.webp';
-      canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();activateSoftwareGlobe('graphics context lost');sceneDirty=true;});
-      globeGL=gl;globeProgram=pr;
-    } catch(err){console.error('WebGL initialization:',err);activateSoftwareGlobe('shader initialization blocked');}
-  }
-  function resize(){
-    const canvas=$('globe');const box=canvas.getBoundingClientRect();if(box.width===0||box.height===0)return;
-    const dpr=Math.min(window.devicePixelRatio||1,1.6);
-    globeW=box.width;globeH=box.height;
-    const cw=Math.round(box.width*dpr),ch=Math.round(box.height*dpr);
-    if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}
-    const base=Math.min(globeW,globeH)*0.385;
-    globeRadius=base*state.zoom;
-    // Shift the globe's projected centre to the uncovered RIGHT side when a
-    // mobile marker is selected. Do not move the desktop globe or overlay.
-    if(phoneDrawer && state.selected){
-      const landscape=window.matchMedia('(orientation: landscape)').matches;
-      const panelWidth=Math.min(globeW*(landscape?.49:.68),landscape?420:340);
-      globeCenterX=(globeW+panelWidth)*.5;
-    }else globeCenterX=globeW*.5;
-    globeCenterY=globeH*.51;
-    sceneDirty=true;renderMarkers();
-    if($('stars').width!==cw||$('stars').height!==ch){$('stars').width=cw;$('stars').height=ch;drawStars();}
-    if(softwareCanvas&&(softwareCanvas.width!==cw||softwareCanvas.height!==ch)){softwareCanvas.width=cw;softwareCanvas.height=ch;}
-    if(viewer.ready)requestViewerDraw();
-  }
-  function drawStars(){
-    const cv=$('stars'),ctx=cv.getContext('2d');const w=cv.width,h=cv.height;ctx.clearRect(0,0,w,h);
-    let seed=329;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-    for(let i=0;i<190;i++){const x=rand()*w,y=rand()*h,r=.25+rand()*1.0,a=.09+rand()*.38;ctx.fillStyle=`rgba(214,232,232,${a})`;ctx.beginPath();ctx.arc(x,y,r,0,2*PI);ctx.fill();}
-  }
-  function drawGlobe(){
-    if(softwareContext){drawSoftwareGlobe();return;}
-    if(!globeGL || !globeData)return;
-    const gl=globeGL,dpr=$('globe').width/globeW;
-    gl.viewport(0,0,$('globe').width,$('globe').height);
-    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(globeProgram);
-    gl.uniform2f(globeData.center,globeCenterX*dpr,(globeH-globeCenterY)*dpr);
-    gl.uniform1f(globeData.radius,globeRadius*dpr);
-    gl.uniform1f(globeData.yaw,state.yaw);gl.uniform1f(globeData.pitch,state.pitch);
-    gl.drawArrays(gl.TRIANGLES,0,6);
-    if(webGLFirstDraw){
-      webGLFirstDraw=false;
-      // Detect silent shader / GPU failures (a blank canvas with working pins).
-      try{
-        const pixel=new Uint8Array(4);
-        gl.readPixels(Math.round(globeCenterX*dpr),Math.round((globeH-globeCenterY)*dpr),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
-        if(gl.getError()!==gl.NO_ERROR || pixel[3]===0){activateSoftwareGlobe('graphics output is blank');sceneDirty=true;}
-      }catch(err){activateSoftwareGlobe('graphics output unavailable');sceneDirty=true;}
-    }
-  }
-  function project(p){
-    const lat=p.lat*rad, lon=p.lng*rad;
-    const delta=lon-state.yaw,cp=Math.cos(state.pitch),sp=Math.sin(state.pitch);
-    const x=Math.cos(lat)*Math.sin(delta);
-    const y=Math.sin(lat)*cp-Math.cos(lat)*sp*Math.cos(delta);
-    const front=Math.sin(lat)*sp+Math.cos(lat)*cp*Math.cos(delta);
-    return {x:globeCenterX+x*globeRadius,y:globeCenterY-y*globeRadius,visible:front>0.025};
-  }
-  function renderMarkers(){
-    if(!globeW)return;
-    const target=$('globeMarkers');const visibleIds=new Set(filtered().map(p=>p.id));
-    for(const p of locations){
-      if(!buttons.has(p.id)){
-        const b=document.createElement('button');b.type='button';b.className='map-marker';b.setAttribute('aria-label',`Open ${p.name}`);
-        const dot=document.createElement('span');dot.className='dot';const tooltip=document.createElement('span');tooltip.className='marker-tooltip';tooltip.textContent=p.name;
-        b.append(dot,tooltip);b.addEventListener('click',()=>selectLocation(p));target.append(b);buttons.set(p.id,b);
-      }
-      const b=buttons.get(p.id),xy=project(p);
-      b.style.left=`${xy.x}px`;b.style.top=`${xy.y}px`;
-      b.hidden=!visibleIds.has(p.id)||!xy.visible;
-      b.classList.toggle('active',p.id===state.selected?.id);
-    }
-  }
-  const canvas=$('globe');let previousDrag=null;
-  canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);previousDrag={id:e.pointerId,x:e.clientX,y:e.clientY};state.fly=null;state.globeDragging=true;});
-  canvas.addEventListener('pointermove',e=>{
-    if(!previousDrag||previousDrag.id!==e.pointerId)return;
-    const dx=e.clientX-previousDrag.x,dy=e.clientY-previousDrag.y;
-    state.yaw-=dx/Math.max(180,globeRadius)*.85;state.pitch=clamp(state.pitch+dy/Math.max(180,globeRadius)*.85,-1.45,1.45);
-    previousDrag.x=e.clientX;previousDrag.y=e.clientY;sceneDirty=true;renderMarkers();
-  });
-  const up=e=>{if(previousDrag?.id===e.pointerId)previousDrag=null;state.globeDragging=false;};
-  canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
-  canvas.addEventListener('wheel',e=>{e.preventDefault();state.zoom=clamp(state.zoom*(e.deltaY<0?1.09:.91),.62,1.8);resize();},{passive:false});
-  canvas.addEventListener('keydown',e=>{
-    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();state.yaw+=(e.key==='ArrowLeft'?.12:-.12);sceneDirty=true;renderMarkers();}
-    if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();state.pitch=clamp(state.pitch+(e.key==='ArrowUp'?.1:-.1),-1.45,1.45);sceneDirty=true;renderMarkers();}
-  });
-  $('globeZoomIn').addEventListener('click',()=>{if(document.body.dataset.viewMode!=='globe'||document.body.classList.contains('maplibre-globe-ready'))return;state.zoom=clamp(state.zoom*1.2,.62,1.8);resize();});
-  $('globeZoomOut').addEventListener('click',()=>{if(document.body.dataset.viewMode!=='globe'||document.body.classList.contains('maplibre-globe-ready'))return;state.zoom=clamp(state.zoom/1.2,.62,1.8);resize();});
-  $('resetGlobe').addEventListener('click',()=>{if(document.body.dataset.viewMode!=='globe'||document.body.classList.contains('maplibre-globe-ready'))return;if(window.SKY_SURFER_PHOTO3D?.reset?.())return;state.fly=null;state.yaw=-98*rad;state.pitch=39*rad;state.zoom=1;resize();});
-  function tick(time){
-    if(state.fly){const f=state.fly;const t=clamp((time-f.start)/f.dur,0,1);const s=1-Math.pow(1-t,3);state.yaw=smooth(f.fromYaw,f.toYaw,s);state.pitch=smooth(f.fromPitch,f.toPitch,s);sceneDirty=true;renderMarkers();if(t>=1)state.fly=null;}
-    if(sceneDirty && (!softwareContext || !state.fly || time-softwareLastFrame>65)){softwareLastFrame=time;drawGlobe();$('coordinates').textContent=`${fmt(state.pitch/rad,'N','S')}   ${fmt(state.yaw/rad,'E','W')}`;sceneDirty=false;}
-    requestAnimationFrame(tick);
-  }
-  window.SKY_SURFER_APP={locations, selectLocation, getSelected:()=>state.selected, getFiltered:filtered,
-    localGlobeZoomIn:()=>{state.zoom=clamp(state.zoom*1.2,.62,1.8);resize();},
-    localGlobeZoomOut:()=>{state.zoom=clamp(state.zoom/1.2,.62,1.8);resize();},
-    localGlobeReset:()=>{state.fly=null;state.yaw=-98*rad;state.pitch=39*rad;state.zoom=1;resize();}
-  };
-  makeWebGL();
+  function resize(){if(viewer.ready)requestViewerDraw();}
+  window.SKY_SURFER_APP={locations,selectLocation,getSelected:()=>state.selected,getFiltered:filtered};
   window.addEventListener('resize',resize);
-  if('ResizeObserver' in window)new ResizeObserver(()=>resize()).observe($('globeArea'));
-  buildPlaces();resize();requestAnimationFrame(tick);
+  buildPlaces();resize();
 })();

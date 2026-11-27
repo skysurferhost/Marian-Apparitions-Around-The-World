@@ -1,4 +1,4 @@
-/* v1.74: native OGC 3D Tiles photogrammetry. No token or paid API by default. */
+/* v1.76: native OGC 3D Tiles photogrammetry. No token or paid API by default. */
 'use strict';
 (()=>{
  const rad=Math.PI/180,MB=1024*1024;
@@ -30,7 +30,7 @@
   function remove(){generation++;wanted=null;visibleAt=0;if(current){collection.remove(current.tileset);current=null;}credit();}
   function clear(){remove();}
   function destroyUnused(tileset){if(tileset&&!tileset.isDestroyed?.())tileset.destroy?.();}
-  function options(){const phone=isPhone();return {maximumScreenSpaceError:phone?32:24,cacheBytes:(phone?80:320)*MB,maximumCacheOverflowBytes:(phone?32:96)*MB,showCreditsOnScreen:false,dynamicScreenSpaceError:true,cullRequestsWhileMoving:true,cullRequestsWhileMovingMultiplier:phone?30:20,preloadWhenHidden:false,preloadFlightDestinations:true,progressiveResolutionHeightFraction:.3,foveatedScreenSpaceError:true,foveatedConeSize:.15,foveatedTimeDelay:phone?.06:.05,skipLevelOfDetail:true,baseScreenSpaceError:512,skipScreenSpaceErrorFactor:8,skipLevels:1,immediatelyLoadDesiredLevelOfDetail:false,loadSiblings:false,enableCollision:true};}
+  function options(){const phone=isPhone();return {maximumScreenSpaceError:phone?32:24,cacheBytes:(phone?80:320)*MB,maximumCacheOverflowBytes:(phone?32:96)*MB,showCreditsOnScreen:false,dynamicScreenSpaceError:true,cullRequestsWhileMoving:true,cullRequestsWhileMovingMultiplier:phone?24:16,preloadWhenHidden:false,preloadFlightDestinations:true,progressiveResolutionHeightFraction:.25,foveatedScreenSpaceError:true,foveatedConeSize:.15,foveatedTimeDelay:phone?.025:.015,skipLevelOfDetail:true,baseScreenSpaceError:512,skipScreenSpaceErrorFactor:8,skipLevels:1,immediatelyLoadDesiredLevelOfDetail:false,loadSiblings:false,enableCollision:true};}
   async function open(source){const token=++generation;const job={source,token,at:Date.now()};pending=job;startedAt=job.at;failures=0;let tileset;
    try{tileset=await C.Cesium3DTileset.fromUrl(source.url,options());
     if(token!==generation||wanted!==source||viewer.isDestroyed()){destroyUnused(tileset);return;}
@@ -44,13 +44,14 @@
   function update(center,height,moving){
    // Expire a stuck root attempt. A late result still gets destroyed by its token check.
    if(pending&&Date.now()-pending.at>30000){const job=pending;pending=null;retry.set(job.source,Date.now()+60000);if(job.token===generation){remove();log('Photomesh root timed out: '+job.source.name);}}
-   if(!center||!Number.isFinite(center.longitude)||!Number.isFinite(center.latitude)||!Number.isFinite(height)||height>(current?(isPhone()?32000:36000):(isPhone()?26000:30000))){if(wanted||current)remove();return false;}
-   const reach=current?2500:1600;const available=sources.filter(s=>distance(s,center)<=reach&&(retry.get(s)||0)<=Date.now()).sort((a,b)=>distance(a,center)-distance(b,center));
+   if(!center||!Number.isFinite(center.longitude)||!Number.isFinite(center.latitude)||!Number.isFinite(height)||height>(current?(isPhone()?36000:42000):(isPhone()?30000:36000))){if(wanted||current)remove();return false;}
+   const reach=current?3000:2200;const available=sources.filter(s=>distance(s,center)<=reach&&(retry.get(s)||0)<=Date.now()).sort((a,b)=>distance(a,center)-distance(b,center));
    const next=current&&available.includes(current.source)?current.source:available[0];
    if(!next){if(current||wanted)remove();return false;}
    if(wanted!==next){remove();wanted=next;wantedAt=Date.now();}
+   // Start immediately over covered areas; debounce nearby/outside passes.
    // Only one root request at a time; obsolete results are destroyed on arrival.
-   if(!current&&!pending&&(!moving||Date.now()-wantedAt>=80)){open(next);return false;}
+   if(!current&&!pending&&(!moving||inside(next,center)||Date.now()-wantedAt>=40)){open(next);return false;}
    if(!current)return false;
    const phone=isPhone();current.tileset.maximumScreenSpaceError=moving?(phone?36:28):!visibleAt?(phone?32:24):(phone?20:12);
    // Keep fallback until some mesh actually renders; failed roots get a cooldown.

@@ -16,16 +16,17 @@
   // 3D building geometry comes from OpenFreeMap's OpenStreetMap-derived vector tiles.
   // We keep the 2016 satellite raster underneath, as requested.
   const STREET_STYLE = 'https://tiles.openfreemap.org/styles/liberty'; // optional labels for satellite
-  const BUILDING_TILEJSON = 'https://tiles.openfreemap.org/planet';
-  const BUILDING_LAYER = 'sky-surfer-3d-buildings';
+  
+
   const SATELLITE_TILES = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg';
-  const EOX_CREDIT = '<a href="https://cloudless.eox.at/" target="_blank" rel="noopener noreferrer">EOxCloudless</a> by <a href="https://eox.at/" target="_blank" rel="noopener noreferrer">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016)';
-  const tileModeLabels = { satellite:'EOxCloudless 2016 satellite imagery + 3D OSM buildings at close zoom', street:'OpenFreeMap Liberty Street Map + 3D OSM buildings at close zoom' };
-  let viewMode = 'satellite';
+  const EOX_CREDIT = '<a href="https://cloudless.eox.at/" target="_blank" rel="noopener noreferrer">EOxCloudless</a> by <a href="https://eox.at/" target="_blank" rel="noopener noreferrer">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016) · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>';
+  const tileModeLabels = {satellite:'Shared regional aerial imagery and photomesh',street:'OpenFreeMap streets and shared white buildings'};
+  let viewMode = null;
   let explorerStyleExpanded = true; // Toggle the sub-options without changing the map.
-  let basemapMode = 'satellite';
-  let buildingLayerReady = false;
-  let streetStyleAvailable = false;
+  const DEFAULT_BASEMAP = 'street';
+  let basemapMode = DEFAULT_BASEMAP;
+  let detail=null, geometryEnabled=true;
+  let streetStyleAvailable = null; // Unknown until the remote style is checked.
   let explorerStylePromise = null;
   const layerVisibilityByMode = new Map();
   let automatic3DTilt = false;
@@ -38,14 +39,7 @@
   let initializationTimer = null;
   let lastError = '';
   let lastErrorType = '';
-  let satelliteStylePromise = null;
   const markers = new Map();
-  const globeMarkers = new Map();
-  let satelliteGlobe = null;
-  let globeReady = false;
-  let globePending = false;
-  let globeFailed = false;
-  const GLOBE_START = { center: [-25, 25], zoom: 1.35, bearing: 0, pitch: 0 };
   const EXPLORER_START = { center: [-40, 30], zoom: 2.35, bearing: 0, pitch: 0 };
   // v1.49: on actual phones, open/reset the flat Marian map at the most
   // zoomed-out supported level. Desktop retains its existing camera.
@@ -88,7 +82,7 @@
     diagDetails.textContent=browserReport()+' · Error: '+lastError;diag.hidden=false;
   }
   function clearFailure(){diag.hidden=true;mapFailed=false;lastError='';lastErrorType='';}
-  $('mapUseGlobe').addEventListener('click',()=>setMode('globe'));
+  $('mapUseGlobe').addEventListener('click',()=>setMode('cesium'));
   $('mapCopyDiagnostic').addEventListener('click',()=>{
     const report=diagDetails.textContent;
     if(navigator.clipboard?.writeText&&window.isSecureContext){
@@ -135,44 +129,6 @@
       }}]
     };
   }
-  // The standalone satellite imagery is never dependent on street-map vector tiles.
-  // When the OpenFreeMap style is obtainable, add ONLY its text labels on top.
-  // If it isn't, continue with the satellite raster and the local Sky Surfer placemarks.
-  function getSatelliteStyle(){
-    if(satelliteStylePromise)return satelliteStylePromise;
-    satelliteStylePromise=(async()=>{
-      const base=basicSatelliteStyle();
-      const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(),4200);
-      try{
-        const result=await fetch(STREET_STYLE,{signal:controller.signal});
-        if(!result.ok)throw Error('Optional label style HTTP '+result.status);
-        const other=await result.json();
-        const labels=(other.layers||[]).filter(layer=>
-          layer.type==='symbol'&&layer.source&&layer.layout?.['text-field']!==undefined);
-        const sourceNames=new Set(labels.map(layer=>layer.source));
-        for(const [id,source] of Object.entries(other.sources||{})){
-          if(sourceNames.has(id)&&id!=='satellite')base.sources[id]=source;
-        }
-        if(other.glyphs)base.glyphs=other.glyphs;
-        if(other.sprite)base.sprite=other.sprite;
-        for(const layer of labels){
-          const label={...layer, paint:{...(layer.paint||{})}};
-          // Preserve text styling where possible, but add contrast on imagery.
-          label.paint['text-color']='#fff8ed';
-          label.paint['text-halo-color']='rgba(8,22,33,0.94)';
-          label.paint['text-halo-width']=1.3;
-          label.paint['text-halo-blur']=0.4;
-          base.layers.push(label);
-        }
-        console.info('Sky Surfer: Satellite with',labels.length,'OpenFreeMap label layers');
-      }catch(e){console.info('Sky Surfer: satellite imagery without optional region labels',String(e.message||e));}
-      finally{clearTimeout(timeout);}
-      return base;
-    })();
-    return satelliteStylePromise;
-  }
-
   // Keep both basemaps in ONE MapLibre style. Switching is a visibility change,
   // rather than map.setStyle(), so satellite tiles and markers are not reloaded.
   // OpenFreeMap Liberty is a street/vector basemap; EOX is independent raster imagery.
@@ -231,6 +187,7 @@
         console.warn('Sky Surfer: OpenFreeMap Street Map unavailable; Satellite still works.',err);
         $('streetsBasemapBtn').disabled=true;
         $('streetsBasemapBtn').title='Street Map unavailable: OpenFreeMap could not load';
+        if(basemapMode==='street'){basemapMode='satellite';updateSwitch();}
       }finally{clearTimeout(timer);}
       return base;
     })();
@@ -246,13 +203,12 @@
     }
     // 3D buildings are deliberately independent of the chosen basemap.
     // Their layer has minzoom 15 and extrudes gradually from zoom 15 to 16.
-    if(map.getLayer(BUILDING_LAYER))
-      map.setLayoutProperty(BUILDING_LAYER,'visibility','visible');
+    detail?.configure(viewMode==='satellite',basemapMode,geometryEnabled);
   }
   function adjustAutomatic3DPerspective(){
     if(!map||!mapReady)return;
     const z=map.getZoom();
-    if(z>=15.65 && map.getPitch()<7){
+    if(geometryEnabled && z>=15.65 && map.getPitch()<7){
       automatic3DTilt=true;
       map.easeTo({pitch:48,duration:reducedMotion()?0:580,essential:true});
     }else if(z<14.7 && automatic3DTilt){
@@ -263,11 +219,8 @@
     }
   }
 
-  function setCredits(){
-    const eox=EOX_CREDIT+' · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>';
-    const osm='<a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>';
-    credits.innerHTML=(basemapMode==='satellite'?eox+' · 3D data: '+osm:osm+' · 3D buildings: OSM');
-  }
+  function setCredits(){credits.hidden=true;credits.textContent='';}
+  function updateCube(){if(viewMode!=='satellite')return;const b=$('cesiumBuildingsToggle');b.hidden=false;b.disabled=false;b.setAttribute('aria-pressed',String(geometryEnabled));b.title=geometryEnabled?'Hide 3D buildings':'Show 3D buildings';}
   function updateSwitch(){
     for(const [id,mode] of [['satelliteBasemapBtn','satellite'],['streetsBasemapBtn','street']]){
       $(id).classList.toggle('active',basemapMode===mode);
@@ -296,43 +249,6 @@
     const marker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([place.lng,place.lat]).addTo(map);
     markers.set(place.id,{marker,element:el});
   }
-  function makeGlobeMarker(place) {
-    const el=document.createElement('button');el.type='button';el.className='sat-pin maplibre-pin';
-    el.setAttribute('aria-label',`Open ${(place.displayName || place.name)} apparition details`);el.title=(place.displayName || place.name);
-    const dot=document.createElement('span');dot.className='sat-pin-dot';
-    const label=document.createElement('span');label.className='sat-pin-label';label.textContent=(place.displayName || place.name);
-    el.append(dot,label);
-    el.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();window.SKY_SURFER_APP?.selectLocation(place);});
-    const marker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([place.lng,place.lat]).addTo(satelliteGlobe);
-    globeMarkers.set(place.id,{marker,element:el});
-  }
-  // Match the Explorer's OSM-derived 3D building extrusions on the atmospheric
-  // MapLibre globe. These only become visible at close zoom (15+); no buildings
-  // are fetched for the overview, and missing vector tiles do not break the globe.
-  function addGlobe3DBuildings(){
-    if(!satelliteGlobe || satelliteGlobe.getLayer('sky-globe-buildings'))return;
-    try{
-      if(!satelliteGlobe.getSource('sky-globe-osm'))satelliteGlobe.addSource('sky-globe-osm',{type:'vector',url:BUILDING_TILEJSON});
-      const firstLabel=(satelliteGlobe.getStyle()?.layers||[]).find(l=>l.type==='symbol' && l.layout?.['text-field']);
-      satelliteGlobe.addLayer({id:'sky-globe-buildings',type:'fill-extrusion',source:'sky-globe-osm','source-layer':'building',minzoom:15,
-        filter:['!=',['get','hide_3d'],true],
-        paint:{
-          'fill-extrusion-color':'#c6c4bf',
-          'fill-extrusion-height':['interpolate',['linear'],['zoom'],15,0,16,['coalesce',['to-number',['get','render_height']],['*',['coalesce',['to-number',['get','building:levels']],1],3],8]],
-          'fill-extrusion-base':['interpolate',['linear'],['zoom'],15,0,16,['coalesce',['to-number',['get','render_min_height']],0]],
-          'fill-extrusion-opacity':0.84,
-          'fill-extrusion-vertical-gradient':true
-        }
-      },firstLabel?.id);
-    }catch(error){console.warn('Optional globe 3D buildings unavailable:',error);}
-  }
-  let globeAutoTilt=false;
-  function adjustGlobeBuildingView(){
-    if(!satelliteGlobe || !globeReady)return;
-    const zoom=satelliteGlobe.getZoom();
-    if(zoom>=15 && !globeAutoTilt){globeAutoTilt=true;satelliteGlobe.easeTo({pitch:48,duration:reducedMotion()?0:550});}
-    else if(zoom<13 && globeAutoTilt){globeAutoTilt=false;satelliteGlobe.easeTo({pitch:0,duration:reducedMotion()?0:450});}
-  }
   // Mobile only: keep the chosen marker in the exposed RIGHT-hand map region,
   // accounting for the left-hand PDF drawer in either phone orientation.
   function isPhoneDrawer(){return !!document.querySelector('.app-shell.phone-drawer-enabled');}
@@ -348,8 +264,8 @@
   function recenterAfterDrawer(place){
     if(viewMode==='cesium'){window.SKY_SURFER_CESIUM?.recenter(place,false);return;}
     if(!place || !isPhoneDrawer())return;
-    const active=viewMode==='satellite'?map:viewMode==='globe'?satelliteGlobe:null;
-    const ready=viewMode==='satellite'?mapReady:globeReady;
+    const active=map;
+    const ready=mapReady;
     if(!active||!ready)return;
     active.stop();
     active.easeTo({center:[place.lng,place.lat],zoom:active.getZoom(),offset:[0,0],duration:reducedMotion()?0:400,essential:true});
@@ -357,133 +273,13 @@
   function phoneViewportChanged(place){
     if(viewMode==='cesium'){window.SKY_SURFER_CESIUM?.recenter(place,true);return;}
     if(!place||!isPhoneDrawer())return;
-    const active=viewMode==='satellite'?map:viewMode==='globe'?satelliteGlobe:null;
-    const ready=viewMode==='satellite'?mapReady:globeReady;
+    const active=map;
+    const ready=mapReady;
     if(!active||!ready)return;
     // Re-frame after the screen rotates; preserve the user's current zoom.
     active.resize();
     active.easeTo({center:[place.lng,place.lat],zoom:active.getZoom(),offset:phoneMarkerOffset(),duration:reducedMotion()?0:350,essential:true});
   }
-  function moveGlobeToSelected(place) {
-    if(!place || !satelliteGlobe || !globeReady || viewMode!=='globe')return;
-    const current=satelliteGlobe.getZoom();
-    satelliteGlobe.stop();
-    satelliteGlobe.easeTo({center:[place.lng,place.lat], zoom:Math.max(current,isPhoneDrawer()?4.4:3.2),
-      offset:phoneMarkerOffset(),pitch:0, bearing:0, duration:reducedMotion()?0:1150, essential:true});
-  }
-  function globeFallback(err) {
-    globeFailed=true;globePending=false;globeReady=false;
-    console.warn('Sky Surfer: satellite globe unavailable; preserving the offline illustrated globe.',err);
-    document.body.classList.remove('maplibre-globe-ready');
-    $('mapLibreGlobeCanvas').hidden=true;
-    $('mapLibreGlobeCredit').hidden=true;
-    try{satelliteGlobe?.remove();}catch(_){}
-    satelliteGlobe=null;
-  }
-  async function initializeSatelliteGlobe(){
-    if(globeReady || globePending || globeFailed || satelliteGlobe)return;
-    globePending=true;
-    try{
-      await loadMapLibre();
-      // Reuse the same 2016 CC BY imagery as Explorer, not the 2020
-      // non-commercial imagery from MapLibre's demonstration page.
-      const style=JSON.parse(JSON.stringify(await getSatelliteStyle()));
-      style.projection={type:'globe'};
-      style.sky={
-        'atmosphere-blend':['interpolate',['linear'],['zoom'],0,1,5,1,7,0],
-        'sky-color':'#081b2a',
-        'horizon-color':'#729cb0',
-        'fog-color':'#3e647b',
-        'sky-horizon-blend':0.45
-      };
-      style.light={anchor:'map',position:[1.5,90,80]};
-      const container=$('mapLibreGlobeCanvas');
-      // Initialize only when the globe view is visible.
-      if(viewMode!=='globe'){globePending=false;return;}
-      container.hidden=false;
-      satelliteGlobe=new maplibregl.Map({container:'mapLibreGlobeCanvas',style,
-        ...GLOBE_START,minZoom:0,maxZoom:16,attributionControl:false,
-        renderWorldCopies:false,antialias:false});
-      compactCredits(satelliteGlobe);
-      satelliteGlobe.on('load',()=>{
-        globePending=false;globeReady=true;
-        addGlobe3DBuildings();
-        satelliteGlobe.on('zoomend',adjustGlobeBuildingView);
-        for(const p of places)makeGlobeMarker(p);
-        updateMarkers();
-        document.body.classList.add('maplibre-globe-ready');
-        $('mapLibreGlobeCredit').hidden=false;
-        requestAnimationFrame(()=>satelliteGlobe?.resize());
-        if(pendingSelection)moveGlobeToSelected(pendingSelection);
-      });
-      satelliteGlobe.on('error',event=>{
-        const err=String(event?.error?.message||event?.message||'Globe resource failure');
-        // Missing optional labels should not remove the globe.
-        if(/webgl|gpu|context lost|invalid projection|unsupported projection/i.test(err))globeFallback(err);
-        else console.warn('Satellite globe resource:',err);
-      });
-      satelliteGlobe.on('webglcontextlost',()=>globeFallback('WebGL context lost'));
-      // A tile service can be slow; do not abandon offline fallback merely
-      // because an ordinary network tile is loading.
-    }catch(err){globeFallback(err?.message||String(err));}
-  }
-  // Based on MapLibre's official 'Display buildings in 3D' example:
-  // https://maplibre.org/maplibre-gl-js/docs/examples/display-buildings-in-3d/
-  // We reuse that fill-extrusion approach but draw it over the CC BY 4.0 satellite
-  // raster rather than replacing the basemap with an ordinary vector street style.
-  function ensureBuildingLayer(){
-    if(!map || !mapReady)return false;
-    if(map.getLayer(BUILDING_LAYER)){
-      buildingLayerReady=true;
-      return true;
-    }
-    try{
-      let sourceId='openfreemap';
-      const source=map.getSource(sourceId);
-      if(!source || (source.type && source.type!=='vector')){
-        sourceId='sky-surfer-building-source';
-        if(!map.getSource(sourceId)){
-          map.addSource(sourceId,{type:'vector',url:BUILDING_TILEJSON});
-        }
-      }
-      // Labels must sit on top of buildings, even when they belong to the
-      // optional OpenFreeMap satellite-label overlay.
-      const symbol=(map.getStyle()?.layers||[]).find(l=>l.type==='symbol'&&l.layout?.['text-field']);
-      const extrusion={
-        id:BUILDING_LAYER,type:'fill-extrusion',source:sourceId,'source-layer':'building',
-        minzoom:15,filter:['!=',['get','hide_3d'],true],
-        layout:{visibility:'visible'},
-        paint:{
-          // Neutral stone-colored volumes read well on satellite photographs.
-          'fill-extrusion-color':['interpolate',['linear'],
-            ['coalesce',['to-number',['get','render_height']],8],
-            0,'#e0dfd8',60,'#c7c6c1',200,'#b7bcc2',400,'#aeb8c3'],
-          'fill-extrusion-height':['interpolate',['linear'],['zoom'],15,0,16,
-            ['coalesce',['to-number',['get','render_height']],
-              ['*',['coalesce',['to-number',['get','building:levels']],1],3],8]],
-          'fill-extrusion-base':['interpolate',['linear'],['zoom'],15,0,16,
-            ['coalesce',['to-number',['get','render_min_height']],0]],
-          'fill-extrusion-opacity':0.88,
-          'fill-extrusion-vertical-gradient':true
-        }
-      };
-      map.addLayer(extrusion,symbol?.id);
-      buildingLayerReady=true;
-      return true;
-    }catch(error){
-      console.warn('Sky Surfer 3D buildings unavailable:',error);
-      // Do not hide working satellite imagery if optional building data fails.
-      buildingLayerReady=false;
-      return false;
-    }
-  }
-  // The 3D buildings overlay is active for *both* Satellite and Street Map.
-  // MapLibre's minzoom setting keeps it hidden until sufficiently close.
-  function activateAutomaticBuildings(){
-    if(ensureBuildingLayer())
-      map.setLayoutProperty(BUILDING_LAYER,'visibility','visible');
-  }
-
   function updateMarkers(){
     const visible=new Set((window.SKY_SURFER_APP?.getFiltered?.()||places).map(p=>p.id));
     for(const place of places){
@@ -492,11 +288,7 @@
         record.element.hidden=!visible.has(place.id);
         record.element.classList.toggle('selected',place.id===pendingSelection?.id);
       }
-      const globeRecord=globeMarkers.get(place.id);
-      if(globeRecord){
-        globeRecord.element.hidden=!visible.has(place.id);
-        globeRecord.element.classList.toggle('selected',place.id===pendingSelection?.id);
-      }
+
     }
   }
   function moveToSelected(place){
@@ -511,7 +303,7 @@
       easing:t=>t*t*(3-2*t),essential:true});
   }
   function select(place){pendingSelection=place;updateMarkers();window.SKY_SURFER_CESIUM?.select(place);if(place){
-    moveToSelected(place);moveGlobeToSelected(place);
+    moveToSelected(place);
   }}
 
   async function initialize(){
@@ -522,12 +314,17 @@
     try{
       const style=await getExplorerStyle();
       if(viewMode!=='satellite'){pendingInit=false;return;}
+      // Start with the selected layers already visible, avoiding a satellite flash.
+      for(const layer of style.layers){
+        const visibility=layerVisibilityByMode.get(layer.id)?.[basemapMode];
+        if(visibility)layer.layout={...(layer.layout||{}),visibility};
+      }
       map=new maplibregl.Map({
         container:'mapLibreCanvas',style,
-        ...explorerStart(),minZoom:isPhoneDrawer()?0:1.5,maxZoom:19,
+        ...explorerStart(),minZoom:isPhoneDrawer()?0:1.5,maxZoom:22,
         attributionControl:false,cooperativeGestures:false,
-        renderWorldCopies:true,antialias:true,
-        fadeDuration:430,refreshExpiredTiles:true
+        renderWorldCopies:true,antialias:!isPhoneDrawer(),
+        fadeDuration:200,refreshExpiredTiles:true
       });
       // One stack of Sky Surfer controls sits immediately above the compact 'i'.
       compactCredits(map);
@@ -544,7 +341,7 @@
         clearFailure();hideNotice();
         for(const place of places)makeMarker(place);
         updateMarkers();map.resize();
-        activateAutomaticBuildings();
+        try{detail=window.SKY_SURFER_MAP_DETAIL.create(map);}catch(error){console.warn("Detailed imagery unavailable",error);}
         applyExplorerBasemap();
         if(pendingSelection)moveToSelected(pendingSelection);
       });
@@ -590,20 +387,29 @@
   $('satelliteBasemapBtn').addEventListener('click',()=>setBasemap('satellite'));
   $('streetsBasemapBtn').addEventListener('click',()=>setBasemap('street'));
 
-  function setMode(mode){
-    if(!['satellite','globe','cesium'].includes(mode))return;
+  function setMode(mode,preferredBasemap=DEFAULT_BASEMAP){
+    if(mode==='globe')mode='cesium'; // backwards-compatible links, not a second globe
+    if(!['satellite','cesium'].includes(mode))return;
+    if(viewMode==='cesium')geometryEnabled=window.SKY_SURFER_CESIUM?.getGeometryEnabled?.()??geometryEnabled;
+    if(mode==='satellite'&&viewMode!=='satellite'){
+      basemapMode=preferredBasemap==='satellite'||streetStyleAvailable===false?'satellite':DEFAULT_BASEMAP;
+      updateSwitch();
+    }
     viewMode=mode;
-    const isExplorer=mode==='satellite',isGlobe=mode==='globe',isCesium=mode==='cesium';
+    const isExplorer=mode==='satellite',isCesium=mode==='cesium';
     document.body.dataset.viewMode=mode;
     $('mapSection').classList.toggle('satellite-active',isExplorer);
-    $('mapSection').classList.toggle('globe-active',isGlobe);
+    $('mapSection').classList.remove('globe-active');
     $('mapSection').classList.toggle('cesium-active',isCesium);
+    if(!isExplorer)detail?.configure(false,basemapMode,geometryEnabled);
     window.SKY_SURFER_CESIUM?.setActive(isCesium);
+    if(isCesium)window.SKY_SURFER_CESIUM?.setGeometryEnabled(geometryEnabled);
+    else {updateCube();applyExplorerBasemap();}
     root.hidden=!isExplorer;
 
     styleSwitch.hidden=!(isExplorer && explorerStyleExpanded);
     $('satelliteViewBtn').setAttribute('aria-expanded',String(isExplorer && explorerStyleExpanded));
-    for(const [id,active] of [['satelliteViewBtn',isExplorer],['globeViewBtn',isGlobe],['cesiumViewBtn',isCesium]]){
+    for(const [id,active] of [['satelliteViewBtn',isExplorer],['cesiumViewBtn',isCesium]]){
       $(id).classList.toggle('active',active);
       $(id).setAttribute('aria-pressed',String(active));
     }
@@ -616,8 +422,7 @@
     inBtn.title='Zoom '+controlsLabel+' in';
     outBtn.setAttribute('aria-label','Zoom '+controlsLabel+' out');
     outBtn.title='Zoom '+controlsLabel+' out';
-    $('viewModeLabel').innerHTML=`<span class="live-dot"></span> ${isExplorer?'MARIAN APPARITIONS MAP':isCesium?'CESIUM 3D GLOBE':'INTERACTIVE 3D GLOBE'} <span class="globe-top-separator">/</span> v1.75 TEST`;
-    $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> SELECT A MARKER`;
+    $('globeHelp').innerHTML=`<span class="hand-icon">↔</span> DRAG TO ${isExplorer?'PAN':'ROTATE'} <span class="help-sep">•</span> SCROLL TO ZOOM <span class="help-sep">•</span> ${isExplorer?'SELECT A MARKER':'WASD / ARROWS TO MOVE'}`;
     if(isExplorer){
       if(!map){
         if(!mapFailed)hideNotice();
@@ -629,11 +434,6 @@
         if(mapReady&&pendingSelection)moveToSelected(pendingSelection);
       });
     }
-    if(isGlobe){
-      window.dispatchEvent(new Event('resize'));
-      if(globeReady){requestAnimationFrame(()=>satelliteGlobe?.resize());if(pendingSelection)moveGlobeToSelected(pendingSelection);}
-      else initializeSatelliteGlobe();
-    }
   }
   $('satelliteViewBtn').addEventListener('click',()=>{
     if(viewMode==='satellite'){
@@ -642,17 +442,15 @@
       $('satelliteViewBtn').setAttribute('aria-expanded',String(explorerStyleExpanded));
     }else{explorerStyleExpanded=true;setMode('satellite');}
   });
-  $('globeViewBtn').addEventListener('click',()=>setMode('globe'));
   $('cesiumViewBtn').addEventListener('click',()=>setMode('cesium'));
+  $('cesiumBuildingsToggle').addEventListener('click',()=>{if(viewMode!=='satellite')return;geometryEnabled=!geometryEnabled;updateCube();detail?.configure(true,basemapMode,geometryEnabled);});
   $('globeZoomIn').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomIn({duration:reducedMotion()?0:280});
     else if(viewMode==='cesium')window.SKY_SURFER_CESIUM?.zoom(1);
-    else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomIn({duration:reducedMotion()?0:300});
   });
   $('globeZoomOut').addEventListener('click',()=>{
     if(viewMode==='satellite')map?.zoomOut({duration:reducedMotion()?0:280});
     else if(viewMode==='cesium')window.SKY_SURFER_CESIUM?.zoom(-1);
-    else if(viewMode==='globe' && globeReady)satelliteGlobe?.zoomOut({duration:reducedMotion()?0:300});
   });
   $('resetGlobe').addEventListener('click',()=>{
     // Restore ALL initial camera axes: map center, zoom, bearing AND pitch.
@@ -660,22 +458,20 @@
     // used to leave the angled perspective behind.
     if(viewMode==='satellite'){
       automatic3DTilt=false;
-      if(basemapMode!=='satellite'){
-        basemapMode='satellite';
+      const resetBasemap=streetStyleAvailable===false?'satellite':DEFAULT_BASEMAP;
+      if(basemapMode!==resetBasemap){
+        basemapMode=resetBasemap;
         updateSwitch();
         applyExplorerBasemap();
       }
       map?.stop();
       map?.easeTo({...explorerStart(),duration:reducedMotion()?0:950,essential:true});
     }else if(viewMode==='cesium'){window.SKY_SURFER_CESIUM?.reset();
-    }else if(viewMode==='globe' && globeReady){
-      satelliteGlobe?.stop();
-      satelliteGlobe?.easeTo({...GLOBE_START,duration:reducedMotion()?0:850,essential:true});
+
     }
   });
   window.addEventListener('resize',()=>{
     if(viewMode==='satellite')map?.resize();
-    else if(viewMode==='globe' && globeReady)satelliteGlobe?.resize();
   });
   window.SKY_SURFER_MAP={
     refresh:()=>{updateMarkers();window.SKY_SURFER_CESIUM?.refresh();},select:place=>{select(place);},setMode,
@@ -683,5 +479,6 @@
     getView:()=>({mode:viewMode,basemapMode,zoom:map?.getZoom(),center:map?.getCenter(),ready:mapReady}),
     getTileStats:()=>({library:'MapLibre GL JS',style:tileModeLabels[basemapMode],ready:mapReady,failed:mapFailed,errorType:lastErrorType,error:lastError,report:browserReport()})
   };
-  updateSwitch();setMode(new URLSearchParams(location.search).get('view')==='cesium'?'cesium':'satellite');
+  const requestedView=new URLSearchParams(location.search).get('view')?.toLowerCase();
+  updateSwitch();setMode(window.SKY_SURFER_GLOBE_NAV?.initialMode(location.search)??(['satellite','map','street','streets'].includes(requestedView)?'satellite':'cesium'),requestedView==='satellite'?'satellite':DEFAULT_BASEMAP);
 })();
