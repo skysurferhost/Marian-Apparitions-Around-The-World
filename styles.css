@@ -1329,3 +1329,6 @@ body.phone-drawer-page {overflow:auto;}
 :root[data-theme="day"] #streetTrialHint{color:#516a70;}
 @media(max-width:520px){.street-viewer-toolbar{gap:4px;padding:5px;}.street-viewer-toolbar button{padding:5px;font-size:9px;letter-spacing:.1px;}.media-overlay-dialog .street-viewer-toolbar #streetFullscreen{flex:1;}}
 @media(max-height:500px) and (orientation:landscape){.media-overlay-dialog .street-viewer-footer{padding:5px 8px;gap:2px;}.media-overlay-dialog .street-viewer-toolbar{padding:4px 8px;}}
+
+/* Inline country flags in directory rows and apparition details. */
+.location-country-inline{white-space:nowrap}.inline-country-flag{display:inline-block;width:17px;height:12px;object-fit:contain;vertical-align:-2px;margin-inline-start:5px;border-radius:1px}

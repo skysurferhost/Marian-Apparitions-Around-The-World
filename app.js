@@ -174,6 +174,26 @@
     } else {holder.textContent='🌐';}
     return holder;
   }
+  // Inline flags use the same bundled country-code lookup as the directory headings.
+  // Keep the country and its small flag together without changing the location text.
+  function appendLocationWithFlag(target, geo, fallback=''){
+    target.replaceChildren();
+    const parts=[geo?.city,geo?.state].filter(Boolean);
+    const country=geo?.country;
+    if(!country){target.textContent=parts.join(', ')||fallback;return;}
+    if(parts.length)target.append(document.createTextNode(parts.join(', ')+', '));
+    const countryGroup=document.createElement('span');countryGroup.className='location-country-inline';
+    countryGroup.textContent=country;
+    const code=countryFlagCode(country);
+    if(code){
+      const flag=document.createElement('img');flag.className='inline-country-flag';
+      flag.src=`flags/${code}.png`;flag.alt='';flag.setAttribute('aria-hidden','true');
+      flag.width=17;flag.height=12;flag.decoding='async';
+      flag.addEventListener('error',()=>flag.remove(),{once:true});
+      countryGroup.append(flag);
+    }
+    target.append(countryGroup);
+  }
   let directoryBrowseMode='country';
   // Use verified location year values only. Unknown years are grouped last,
   // not guessed from media files or descriptions.
@@ -188,7 +208,7 @@
     const title=document.createElement('span');title.className='directory-place-name';
     title.textContent=place.displayName||`${place.name}${place.year?' – '+place.year:''}`;
     const location=document.createElement('span');location.className='directory-place-sub';
-    location.textContent=[place.geo?.city,place.geo?.state,place.geo?.country].filter(Boolean).join(', ')||place.region||'';
+    appendLocationWithFlag(location,place.geo,place.region||'');
     const arrow=document.createElement('span');arrow.className='directory-place-arrow';arrow.textContent='›';
     info.append(title,location);item.append(info,arrow);
     item.addEventListener('click',()=>{closeDirectory();selectLocation(place,true);});
@@ -293,7 +313,7 @@
     if(!$('mediaOverlay').hidden)closeMediaOverlay();
     state.selected=p;window.SKY_SURFER_MAP?.select?.(p);openDetailPanel();
     $('placeTitle').textContent=p.displayName || p.name;
-    $('placeLocation').textContent=[p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ');
+    appendLocationWithFlag($('placeLocation'),p.geo);
     $('placeCoords').textContent=labelCoords(p);
     const fileCount=new Set((p.media||[]).map(m=>m.src)).size;
     const pageCount=(p.media||[]).filter(m=>m.type==='pdf').length;
