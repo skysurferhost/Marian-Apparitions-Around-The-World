@@ -75,11 +75,11 @@ def parse_kml(filepath,source):
             except (ValueError,IndexError):return
             if not(-180<=lon<=180 and -90<=lat<=90):return
             raw_name=(el.findtext('k:name',default='',namespaces=NS) or '').strip()
-            year_match=re.search(r'(?<!\d)(1[0-9]{3}|20[0-9]{2})(?!\d)',raw_name)
+            year_match=re.search(r'(?<!\d)([1-9][0-9]{2}|1[0-9]{3}|20[0-9]{2})(?!\d)',raw_name)
             apparition_year=int(year_match.group(1)) if year_match else None
             # My Maps may put place + year in parentheses after the devotional name.
             # Keep the human-facing title concise and the source marker unchanged.
-            name=re.sub(r'\s*\([^)]*(?:1[0-9]{3}|20[0-9]{2})[^)]*\)\s*$', '', raw_name).strip() or raw_name
+            name=re.sub(r'\s*\([^)]*(?:[1-9][0-9]{2}|1[0-9]{3}|20[0-9]{2})[^)]*\)\s*$', '', raw_name).strip() or raw_name
             desc=html_text(el.findtext('k:description',default='',namespaces=NS) or '')
             original_id=el.attrib.get('id','').strip()
             # My Maps exports normally have no marker ID. Normalized names are
@@ -136,11 +136,11 @@ def main():
         assigned=cfg.get('files',[])
         if isinstance(assigned,str):assigned=[assigned]
         assigned=[f.replace('\\','/') for f in assigned if isinstance(f,str) and f.replace('\\','/') in all_paths]
-        if not assigned and p['originalName']:
+        if not assigned and p['originalName'] and not cfg.get('manual_files'):
             candidates=sorted(((association(p['originalName'],f),f) for f in all_paths),reverse=True)
             if candidates and candidates[0][0]>=.67: assigned=[candidates[0][1]]
         for f in all_paths:
-            if f not in assigned and p['originalName'] and Path(f).suffix.lower() in VALID_IMAGES and association(p['originalName'],f)>=.83:
+            if not cfg.get('manual_files') and f not in assigned and p['originalName'] and Path(f).suffix.lower() in VALID_IMAGES and association(p['originalName'],f)>=.83:
                 assigned.append(f)
         cfg['files']=assigned;mapped[ident]=cfg
         p['description']=cfg.get('description_override') or p['description'] or ''
