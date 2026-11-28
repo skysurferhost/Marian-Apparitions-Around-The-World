@@ -15,7 +15,8 @@
         "url": "https://www.santuario-fatima.pt/en/pages/places-of-the-apparitions"
       }
     ],
-    "list_order": 1
+    "list_order": 1,
+    "manual_files": true
   },
   "mymaps-our-lady-of-lourdes": {
     "files": [
@@ -33,7 +34,8 @@
         "url": "https://www.lourdes-france.com/en/recognition-of-the-apparitions/"
       }
     ],
-    "list_order": 3
+    "list_order": 3,
+    "manual_files": true
   },
   "mymaps-our-lady-of-guadalupe": {
     "files": [
@@ -51,6 +53,14 @@
         "url": "https://www.vatican.va/news_services/liturgy/saints/ns_lit_doc_20020731_juan-diego_en.html"
       }
     ],
-    "list_order": 2
+    "list_order": 2,
+    "manual_files": true
+  },
+  "mymaps-our-lady-of-mount-carmel": {
+    "files": [
+      "Our Lady of Mount Carmel (Aylesford, Kent, United Kingdom - 1251).pdf"
+    ],
+    "year": 1251,
+    "manual_files": true
   }
 }
