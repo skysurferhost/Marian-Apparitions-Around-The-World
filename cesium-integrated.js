@@ -6,6 +6,8 @@
  const remote=`https://cesium.com/downloads/cesiumjs/releases/${VERSION}/Build/Cesium/`;
  const EOX='https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg';
  let viewer, blue, eox, labels, buildings, photomesh, transparent, sampleCanvas, logs=[], frameCount=0, lastError='', baseUrl='', active=false, starting=false, selected=null, renderReady=false;
+ // Only a mobile activation may carry a destination after the detail drawer closes.
+ let activationFocus=null;
  const markerEntities=new Map();
  let geometryEnabled=true;
  let compatibilityMode=false, mobileWorld=null, mobileWorldMode=false, meshCredit=null, keyboardNav=null, planets=null;
@@ -56,12 +58,12 @@
   if(animate)camera.flyTo({destination,orientation,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:1.3,complete:shift});
   else{camera.setView({destination,orientation});shift();}
  }
- function world(){if(!viewer||!active)return;const C=window.Cesium;viewer.camera.cancelFlight();viewer.resize();
+ function world(){activationFocus=null;if(!viewer||!active)return;const C=window.Cesium;viewer.camera.cancelFlight();viewer.resize();
   buildings?.clear();photomesh?.clear();if(blue)blue.show=true;
   viewer.camera.setView({destination:C.Cartesian3.fromDegrees(-25,25,22000000),orientation:{heading:0,pitch:-Math.PI/2,roll:0},...(C.Matrix4?{endTransform:C.Matrix4.IDENTITY}:{})});
   updateRegions(C);viewer.scene.requestRender?.();}
  function refresh(){if(!viewer)return;const visible=new Set((window.SKY_SURFER_APP?.getFiltered?.()||places).map(p=>p.id));for(const [id,e] of markerEntities){e.show=visible.has(id);e.billboard.scale=selected?.id===id?1.14:1;}}
- function select(place){selected=place;refresh();if(active&&viewer&&place)move(place,Math.max(250,Math.min(18000,viewer.camera.positionCartographic.height)),true);}
+ function select(place){selected=place;if(place&&active&&document.querySelector('.app-shell')?.classList.contains('phone-drawer-enabled'))activationFocus=place;refresh();if(active&&viewer&&place)move(place,Math.max(250,Math.min(18000,viewer.camera.positionCartographic.height)),true);}
  function setupMarkers(C){
   const image=new URL('assets/marian-apparition-pin.svg',document.baseURI).href;
   // Match the Standard Globe's screen-facing pin with its tip at a fixed map
@@ -294,7 +296,7 @@
   if(creditDisplay?.addStaticCredit){creditDisplay.addStaticCredit(new C.Credit('NASA Earth Observatory — Blue Marble Next Generation',false));if(window.MutationObserver){meshNode.classList.add('credit-in-lightbox');new MutationObserver(syncMeshCredit).observe(meshNode,{childList:true,characterData:true,subtree:true});}}
   const nativeCreditLink=host.querySelector?.('.cesium-credit-expand-link');if(nativeCreditLink){nativeCreditLink.setAttribute('aria-label','Map imagery and 3D data credits');nativeCreditLink.title='Map credits';}
   status('Viewer created. Imagery is streaming.');
-  if(selected&&active)move(selected,18000,true);
+  if(active&&(selected||activationFocus))move(selected||activationFocus,18000,!!selected);
   // The base is already installed; network layers are overlays only.
   try{const provider=protect(new C.UrlTemplateImageryProvider({url:EOX,tilingScheme:new C.WebMercatorTilingScheme(),maximumLevel:14,credit:new C.Credit('EOxCloudless by EOX IT Services GmbH (modified Copernicus Sentinel data 2016), CC BY 4.0',false),enablePickFeatures:false}));tileErrors(provider,'EOX');eox=viewer.imageryLayers.addImageryProvider(provider);eox.show=!isPhone()&&!compatibilityMode;}catch(e){log('EOX setup failed: '+e.message);}
   configureRegions(C);
@@ -304,9 +306,9 @@
   updateRegions(C);setInterval(()=>{try{updateRegions(C);}catch(e){log('Regional update: '+e.message);}},120);
  }catch(e){fail(e);}finally{starting=false;if(viewer){viewer.useDefaultRenderLoop=active&&!lastError;if(active)viewer.resize();}}
  }
- function setActive(value){active=value;host.hidden=!value;updateGeometryButton();if(!value){keyboardNav?.stop();mobileWorld?.hide();planets?.hide();if(viewer){clearOam();buildings?.clear();photomesh?.clear();previousCamera=null;lastMotion=0;viewer.camera.cancelFlight();viewer.useDefaultRenderLoop=false;}return;}
+ function setActive(value,phoneFocus=null){active=value;activationFocus=value?phoneFocus:null;host.hidden=!value;updateGeometryButton();if(!value){keyboardNav?.stop();mobileWorld?.hide();planets?.hide();if(viewer){clearOam();buildings?.clear();photomesh?.clear();previousCamera=null;lastMotion=0;viewer.camera.cancelFlight();viewer.useDefaultRenderLoop=false;}return;}
   selected=window.SKY_SURFER_APP?.getSelected?.()||null;
-  if(viewer){viewer.useDefaultRenderLoop=true;requestAnimationFrame(()=>{if(active){viewer.resize();refresh();updateRegions(window.Cesium);if(selected)move(selected,Math.max(250,Math.min(18000,viewer.camera.positionCartographic.height)),true);}});}else start();
+  if(viewer){viewer.useDefaultRenderLoop=true;requestAnimationFrame(()=>{if(active){viewer.resize();refresh();updateRegions(window.Cesium);const focus=selected||activationFocus;if(focus)move(focus,Math.max(250,Math.min(18000,viewer.camera.positionCartographic.height)),!!selected);}});}else start();
  }
  if(window.ResizeObserver){const observer=new ResizeObserver(()=>{if(active&&viewer)viewer.resize();});observer.observe(host);}
  window.SKY_SURFER_CESIUM={setActive,select,refresh,reset:world,setGeometryEnabled,getGeometryEnabled:()=>geometryEnabled,

@@ -143,7 +143,6 @@
       }
       const info=document.createElement('span');info.className='place-info';
       const name=document.createElement('span');name.className='place-name';name.textContent=p.displayName || p.name;
-      if(showNewLabel(p)) name.append(makeNewLabel(p));
       const sub=document.createElement('span');sub.className='place-sub';sub.textContent=([p.geo?.city,p.geo?.state,p.geo?.country].filter(Boolean).join(', ') || p.region || 'Marian apparition');
       const chev=document.createElement('span');chev.className='place-chevron';chev.textContent='›';
       info.append(name,sub);btn.append(index,info,chev);btn.addEventListener('click',()=>selectLocation(p,true));container.append(btn);
@@ -202,20 +201,12 @@
     const numeric=Number(place.year);
     return Number.isInteger(numeric)&&numeric>0?numeric:null;
   }
-  /* Timed NEW indicator */
-  function showNewLabel(place){return place.isNew===true&&(place.newUntil==null||Date.now()<place.newUntil);}
-  function makeNewLabel(place){const tag=document.createElement('span');tag.className='apparition-new-label';tag.textContent='NEW';if(Number.isFinite(place.newUntil))tag.dataset.newUntil=String(place.newUntil);return tag;}
-  function expireNewLabels(){for(const tag of document.querySelectorAll('.apparition-new-label[data-new-until]'))if(Date.now()>=Number(tag.dataset.newUntil))tag.remove();}
-  setInterval(expireNewLabels,30000);
-  document.addEventListener('visibilitychange',expireNewLabels);
   function directoryItem(place, chronological=false){
-    /* Published NEW indicator */
     const item=document.createElement('button');item.type='button';item.className='directory-place';
     item.setAttribute('aria-label',`Show ${place.displayName||place.name} on the map and open details`);
     const info=document.createElement('span');info.className='directory-place-info';
     const title=document.createElement('span');title.className='directory-place-name';
     title.textContent=place.displayName||`${place.name}${place.year?' – '+place.year:''}`;
-    if(showNewLabel(place)) title.append(makeNewLabel(place));
     const location=document.createElement('span');location.className='directory-place-sub';
     if(chronological) appendLocationWithFlag(location,place.geo,place.region||'');
     else location.textContent=[place.geo?.city,place.geo?.state,place.geo?.country].filter(Boolean).join(', ')||place.region||'';

@@ -35,6 +35,8 @@
   let mapFailed = false;
   let pendingInit = false;
   let pendingSelection = null;
+  // The phone drawer selection is temporary; keep its last destination across map engines.
+  let lastPhoneFocus = null;
   let dependencyPromise = null;
   let initializationTimer = null;
   let lastError = '';
@@ -291,7 +293,7 @@
 
     }
   }
-  function moveToSelected(place){
+  function moveToSelected(place,withDrawer=true){
     if(!place||viewMode!=='satellite'||!mapReady||!map)return;
     map.stop();
     const zoom=map.getZoom();const destinationZoom=zoom<7?11.5:zoom;
@@ -299,10 +301,14 @@
     while(lng-start.lng>180)lng-=360;
     while(lng-start.lng< -180)lng+=360;
     map.easeTo({center:[lng,place.lat],zoom:destinationZoom,
-      offset:phoneMarkerOffset(),duration:reducedMotion()?0:Math.min(1750,Math.max(760,920+Math.abs(lng-start.lng)*7)),
+      offset:withDrawer?phoneMarkerOffset():[0,0],duration:reducedMotion()?0:Math.min(1750,Math.max(760,920+Math.abs(lng-start.lng)*7)),
       easing:t=>t*t*(3-2*t),essential:true});
   }
-  function select(place){pendingSelection=place;updateMarkers();window.SKY_SURFER_CESIUM?.select(place);if(place){
+  function focusExplorer(){
+    if(pendingSelection)moveToSelected(pendingSelection);
+    else if(isPhoneDrawer()&&lastPhoneFocus)moveToSelected(lastPhoneFocus,false);
+  }
+  function select(place){pendingSelection=place;if(place&&isPhoneDrawer())lastPhoneFocus=place;updateMarkers();window.SKY_SURFER_CESIUM?.select(place);if(place){
     moveToSelected(place);
   }}
 
@@ -343,7 +349,7 @@
         updateMarkers();map.resize();
         try{detail=window.SKY_SURFER_MAP_DETAIL.create(map);}catch(error){console.warn("Detailed imagery unavailable",error);}
         applyExplorerBasemap();
-        if(pendingSelection)moveToSelected(pendingSelection);
+        if(viewMode==='satellite')focusExplorer();
       });
       map.on('error',event=>{
         const raw=event?.error;
@@ -390,6 +396,7 @@
   function setMode(mode,preferredBasemap=DEFAULT_BASEMAP){
     if(mode==='globe')mode='cesium'; // backwards-compatible links, not a second globe
     if(!['satellite','cesium'].includes(mode))return;
+    if(viewMode==='satellite'&&mode!=='satellite'&&isPhoneDrawer())map?.stop();
     if(viewMode==='cesium')geometryEnabled=window.SKY_SURFER_CESIUM?.getGeometryEnabled?.()??geometryEnabled;
     if(mode==='satellite'&&viewMode!=='satellite'){
       basemapMode=preferredBasemap==='satellite'||streetStyleAvailable===false?'satellite':DEFAULT_BASEMAP;
@@ -402,7 +409,7 @@
     $('mapSection').classList.remove('globe-active');
     $('mapSection').classList.toggle('cesium-active',isCesium);
     if(!isExplorer)detail?.configure(false,basemapMode,geometryEnabled);
-    window.SKY_SURFER_CESIUM?.setActive(isCesium);
+    window.SKY_SURFER_CESIUM?.setActive(isCesium,isPhoneDrawer()?lastPhoneFocus:null);
     if(isCesium)window.SKY_SURFER_CESIUM?.setGeometryEnabled(geometryEnabled);
     else {updateCube();applyExplorerBasemap();}
     root.hidden=!isExplorer;
@@ -430,8 +437,9 @@
           .catch(error=>showFailure(error?.message||String(error),'library'));
       }
       requestAnimationFrame(()=>{
+        if(viewMode!=='satellite')return;
         map?.resize();
-        if(mapReady&&pendingSelection)moveToSelected(pendingSelection);
+        if(mapReady)focusExplorer();
       });
     }
   }
@@ -453,6 +461,7 @@
     else if(viewMode==='cesium')window.SKY_SURFER_CESIUM?.zoom(-1);
   });
   $('resetGlobe').addEventListener('click',()=>{
+    if(isPhoneDrawer())lastPhoneFocus=null;
     // Restore ALL initial camera axes: map center, zoom, bearing AND pitch.
     // Right-drag rotates/pitches the map; resetting only center and zoom
     // used to leave the angled perspective behind.

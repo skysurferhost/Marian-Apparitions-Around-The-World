@@ -3,7 +3,7 @@
   <Document>
     <name>Marian Apparitions Map</name>
     <description/>
-    <Style id="icon-1899-0288D1-nodesc-normal">
+    <Style id="icon-1899-0288D1-normal">
       <IconStyle>
         <color>ffd18802</color>
         <scale>1</scale>
@@ -15,11 +15,8 @@
       <LabelStyle>
         <scale>0</scale>
       </LabelStyle>
-      <BalloonStyle>
-        <text><![CDATA[<h3>$[name]</h3>]]></text>
-      </BalloonStyle>
     </Style>
-    <Style id="icon-1899-0288D1-nodesc-highlight">
+    <Style id="icon-1899-0288D1-highlight">
       <IconStyle>
         <color>ffd18802</color>
         <scale>1</scale>
@@ -31,25 +28,23 @@
       <LabelStyle>
         <scale>1</scale>
       </LabelStyle>
-      <BalloonStyle>
-        <text><![CDATA[<h3>$[name]</h3>]]></text>
-      </BalloonStyle>
     </Style>
-    <StyleMap id="icon-1899-0288D1-nodesc">
+    <StyleMap id="icon-1899-0288D1">
       <Pair>
         <key>normal</key>
-        <styleUrl>#icon-1899-0288D1-nodesc-normal</styleUrl>
+        <styleUrl>#icon-1899-0288D1-normal</styleUrl>
       </Pair>
       <Pair>
         <key>highlight</key>
-        <styleUrl>#icon-1899-0288D1-nodesc-highlight</styleUrl>
+        <styleUrl>#icon-1899-0288D1-highlight</styleUrl>
       </Pair>
     </StyleMap>
     <Folder>
       <name>Portugal</name>
       <Placemark>
         <name>Our Lady of Fátima (Fátima, Portugal - 1917)</name>
-        <styleUrl>#icon-1899-0288D1-nodesc</styleUrl>
+        <description>test description</description>
+        <styleUrl>#icon-1899-0288D1</styleUrl>
         <Point>
           <coordinates>
             -8.6733061,39.6316841,0
@@ -61,7 +56,8 @@
       <name>France</name>
       <Placemark>
         <name>Our Lady of Lourdes (Lourdes, France - 1858)</name>
-        <styleUrl>#icon-1899-0288D1-nodesc</styleUrl>
+        <description>test description</description>
+        <styleUrl>#icon-1899-0288D1</styleUrl>
         <Point>
           <coordinates>
             -0.0584813,43.0974946,0
@@ -73,19 +69,11 @@
       <name>Mexico</name>
       <Placemark>
         <name>Our Lady of Guadalupe (Mexico City, Mexico - 1531)</name>
-        <styleUrl>#icon-1899-0288D1-nodesc</styleUrl>
+        <description>test direction</description>
+        <styleUrl>#icon-1899-0288D1</styleUrl>
         <Point>
           <coordinates>
             -99.1161244,19.4860439,0
-          </coordinates>
-        </Point>
-      </Placemark>
-      <Placemark>
-        <name>Our Lady of Mount Carmel (Aylesford, Kent, United Kingdom - 1251)</name>
-        <styleUrl>#icon-1899-0288D1-nodesc</styleUrl>
-        <Point>
-          <coordinates>
-            0.4712288,51.303429,0
           </coordinates>
         </Point>
       </Placemark>
